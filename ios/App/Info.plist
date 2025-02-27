@@ -23,6 +23,12 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
+	<string>We need to used the Gallery</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+		<string>We need to used the Camera</string>
+	<key>NSCameraUsageDescription</key>
+		<string>We need to used the Microphone</string>
+	<key>NSMicrophoneUsageDescription</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>

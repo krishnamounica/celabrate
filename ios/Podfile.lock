@@ -1210,6 +1210,27 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
+  - react-native-unistyles (2.30.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - React-nativeconfig (0.77.1)
   - React-NativeModulesApple (0.77.1):
     - glog
@@ -1499,7 +1520,17 @@ PODS:
     - React-logger (= 0.77.1)
     - React-perflogger (= 0.77.1)
     - React-utils (= 0.77.1)
+  - RNImageCropPicker (0.42.0):
+    - React-Core
+    - React-RCTImage
+    - RNImageCropPicker/QBImagePickerController (= 0.42.0)
+    - TOCropViewController (~> 2.7.4)
+  - RNImageCropPicker/QBImagePickerController (0.42.0):
+    - React-Core
+    - React-RCTImage
+    - TOCropViewController (~> 2.7.4)
   - SocketRocket (0.7.1)
+  - TOCropViewController (2.7.4)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1541,6 +1572,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
+  - react-native-unistyles (from `../node_modules/react-native-unistyles`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -1570,11 +1602,13 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - SocketRocket
+    - TOCropViewController
 
 EXTERNAL SOURCES:
   boost:
@@ -1650,6 +1684,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
+  react-native-unistyles:
+    :path: "../node_modules/react-native-unistyles"
   React-nativeconfig:
     :path: "../node_modules/react-native/ReactCommon"
   React-NativeModulesApple:
@@ -1708,6 +1744,8 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNImageCropPicker:
+    :path: "../node_modules/react-native-image-crop-picker"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -1748,6 +1786,7 @@ SPEC CHECKSUMS:
   React-logger: 1935d6e6461e9c8be4c87af56c56a4876021171e
   React-Mapbuffer: 212171f037e3b22e6c2df839aa826806da480b85
   React-microtasksnativemodule: 72564d5469003687d39bfc4efad281df8efc0684
+  react-native-unistyles: c88f1a9c35cd8a6fab4314cebdfbc7e1393bc3f1
   React-nativeconfig: cb207ebba7cafce30657c7ad9f1587a8f32e4564
   React-NativeModulesApple: 82a8bee52df9f5b378195a500f22be3a6ef0f890
   React-perflogger: 8152bab3f0eb4b8751f282f9af7caed2c823a9ea
@@ -1777,8 +1816,10 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: e7e92253013754a8c35ebdbf8ad700f4e8956f62
   ReactCodegen: 8c6710db5ccee603fa0475978465b606abe1ed77
   ReactCommon: 8da6c58517fa560d0fc7a9da83093457303ae9f8
+  RNImageCropPicker: 64b6bec9ec185ee59b71a93d7058816bd0e1916e
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  Yoga: 2957d0e744897870b5a377f26522e3f08cadd7ac
+  TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
+  Yoga: 1fd059161b449018342943b095a6d4e69bcaa719
 
 PODFILE CHECKSUM: 073a0e871a2fb1ff647d6d0dfc7e37122603df4b
 
