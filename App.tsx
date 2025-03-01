@@ -1,10 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Profile from './src/screens/Profile/Profile'
+import Route from './src/navigation/Route'
 
 const App = () => {
   return (
-   <Profile/>
+  //  <Profile/>
+  <Route/>
   )
 }
 

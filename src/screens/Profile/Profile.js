@@ -15,7 +15,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import { useState } from 'react';
 
 
-const Profile = () => {
+const Profile = ({navigation}) => {
   const Data = [
     {
       id: 1,
@@ -87,8 +87,8 @@ const Profile = () => {
                 <Image
                   style={styles.profileImage}
                   // source={imagePath.profile_image}
-                  source={{uri:profileImage?.sourceURL
-                  }}
+                  source={profileImage?.sourceURL ?  {uri:profileImage?.sourceURL
+                  } : imagePath.profile_image}
                 />
                 <TouchableOpacity
                   onPress={() => ImageImportFromGallery()}
@@ -118,7 +118,9 @@ const Profile = () => {
             keyExtractor={item => item.id.toString()}
             renderItem={({item}) => {
               return (
-                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <TouchableOpacity 
+                onPress={()=>navigation.navigate('OrderHistory')}
+                style={{flexDirection: 'row', alignItems: 'center'}}>
                   <View
                     style={{
                       width: '20%',
@@ -150,7 +152,7 @@ const Profile = () => {
                       source={item.next}
                     />
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             }}
           />

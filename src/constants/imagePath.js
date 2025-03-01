@@ -10,4 +10,13 @@ export default {
     compliant:require('./../assets/images/compliant.png'),
     edit:require('./../assets/images/edit.png'),
 
+
+
+    categories:require('./../assets/images/categories.png'),
+    home_agreement:require('./../assets/images/home-agreement.png'),
+    search:require('./../assets/images/search-interface-symbol.png'),
+    user:require('./../assets/images/user.png'),
+    onlineshopping:require('./../assets/images/online-shopping.png'),
+
+
 };
