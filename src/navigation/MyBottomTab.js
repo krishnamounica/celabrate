@@ -1,158 +1,66 @@
-import {Image, StyleSheet, Text, View} from 'react-native';
+import { Text, View } from 'react-native';
 import React from 'react';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {Cart, Categories, Home, Profile, Search} from '../screens';
-import imagePath from '../constants/imagePath';
-import {moderateScale} from '../styles/scaling';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Cart, Categories, Home, Profile, Search } from '../screens';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { moderateScale } from '../styles/scaling';
 import colors from '../styles/colors';
+import CategoryList from '../screens/Categories/Categories';
 
 const Tab = createBottomTabNavigator();
 
 const MyBottomTab = () => {
   return (
-    <Tab.Navigator screenOptions={{headerShown: false}}>
-      <Tab.Screen
-        options={() => ({
-          tabBarLabel: ({focused}) => {
-            return (
-              <View>
-                <Text
-                  style={{
-                    color: focused ? colors.backgorundColor : colors.black,
-                  }}>
-                  Home
-                </Text>
-              </View>
-            );
-          },
-          tabBarIcon: ({focused}) => {
-            return (
-              <Image
-                tintColor={focused ? colors.backgorundColor : colors.black}
-                style={{width: moderateScale(24), height: moderateScale(24)}}
-                source={imagePath.home_agreement}
-              />
-            );
-          },
-        })}
-        name="Home"
-        component={Home}
-      />
-      <Tab.Screen
-        options={() => ({
-          tabBarLabel: ({focused}) => {
-            return (
-              <View>
-                <Text
-                  style={{
-                    color: focused ? colors.backgorundColor : colors.black,
-                  }}>
-                  Search
-                </Text>
-              </View>
-            );
-          },
-          tabBarIcon: ({focused}) => {
-            return (
-              <Image
-                tintColor={focused ? colors.backgorundColor : colors.black}
-                style={{width: moderateScale(24), height: moderateScale(24)}}
-                source={imagePath.search}
-              />
-            );
-          },
-        })}
-        name="Search"
-        component={Search}
-      />
-      <Tab.Screen
-        options={() => ({
-          tabBarLabel: ({focused}) => {
-            return (
-              <View>
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    color: focused ? colors.backgorundColor : colors.black,
-                  }}>
-                  Categories
-                </Text>
-              </View>
-            );
-          },
-          tabBarIcon: ({focused}) => {
-            return (
-              <Image
-                tintColor={focused ? colors.backgorundColor : colors.black}
-                style={{width: moderateScale(24), height: moderateScale(24)}}
-                source={imagePath.categories}
-              />
-            );
-          },
-        })}
-        name="Categories"
-        component={Categories}
-      />
-      <Tab.Screen
-        options={() => ({
-          tabBarLabel: ({focused}) => {
-            return (
-              <View>
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    color: focused ? colors.backgorundColor : colors.black,
-                  }}>
-                  Cart
-                </Text>
-              </View>
-            );
-          },
-          tabBarIcon: ({focused}) => {
-            return (
-              <Image
-                tintColor={focused ? colors.backgorundColor : colors.black}
-                style={{width: moderateScale(24), height: moderateScale(24)}}
-                source={imagePath.onlineshopping}
-              />
-            );
-          },
-        })}
-        name="Cart"
-        component={Cart}
-      />
-      <Tab.Screen
-        options={() => ({
-          tabBarLabel: ({focused}) => {
-            return (
-              <View>
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    color: focused ? colors.backgorundColor : colors.black,
-                  }}>
-                  Profile
-                </Text>
-              </View>
-            );
-          },
-          tabBarIcon: ({focused}) => {
-            return (
-              <Image
-                tintColor={focused ? colors.backgorundColor : colors.black}
-                style={{width: moderateScale(24), height: moderateScale(24)}}
-                source={imagePath.user}
-              />
-            );
-          },
-        })}
-        name="Profile"
-        component={Profile}
-      />
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#E3F2FD', // 💙 Pleasant Background Color
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          position: 'absolute',
+          elevation: 5,
+          height: moderateScale(60),
+        },
+        tabBarLabel: ({ focused }) => (
+          <Text style={{ color: focused ? colors.backgorundColor : colors.black }}>
+            {route.name}
+          </Text>
+        ),
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          switch (route.name) {
+            case 'Home':
+              iconName = focused ? 'home' : 'home-outline';
+              break;
+            case 'Search':
+              iconName = focused ? 'search' : 'search-outline';
+              break;
+            case 'Categories':
+              iconName = focused ? 'grid' : 'grid-outline';
+              break;
+            case 'Cart':
+              iconName = focused ? 'cart' : 'cart-outline';
+              break;
+            case 'Profile':
+              iconName = focused ? 'person' : 'person-outline';
+              break;
+          }
+
+          return <Ionicons name={iconName} size={moderateScale(24)} color={color} />;
+        },
+        tabBarActiveTintColor: colors.backgorundColor,
+        tabBarInactiveTintColor: colors.black,
+      })}
+    >
+      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="Search" component={Search} />
+      <Tab.Screen name="Categories" component={CategoryList} />
+      <Tab.Screen name="Cart" component={Cart} />
+      <Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );
 };
 
 export default MyBottomTab;
-
-const styles = StyleSheet.create({});
