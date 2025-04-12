@@ -2,10 +2,12 @@ import React, { useEffect } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProducts } from '../redux/productSlice';
+import { useNavigation } from '@react-navigation/native';
 
 const ProductListScreen = () => {
   const dispatch = useDispatch();
   const { items: products, loading, error } = useSelector(state => state.products);
+  const navigation = useNavigation()
 
   useEffect(() => {
     dispatch(fetchProducts());
@@ -47,11 +49,17 @@ const ProductListScreen = () => {
 
         {/* Product Image */}
         <View style={styles.imageContainer}>
+          <TouchableOpacity
+                                          style={styles.resultItem}
+                                          onPress={() => {navigation.navigate('ProductDetails', { product: item });
+                                          }}
+                                      >
           <Image
             source={{ uri: item.image || 'https://via.placeholder.com/150' }} // Placeholder if no image
             style={styles.image}
             onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)} // Debugging
           />
+          </TouchableOpacity>
           <View style={styles.offerTag}>
             <Text style={styles.offerText}>₹{discount} off</Text>
           </View>
@@ -91,6 +99,7 @@ const ProductListScreen = () => {
       ) : products.length === 0 ? (
         <Text style={styles.noProducts}>No products available</Text>
       ) : (
+
         <FlatList
           data={products}
           horizontal={true}

@@ -37,7 +37,7 @@ const categories = [...new Set(products.map(product => product.category?.name ||
 const handleSelectOption = (category) => {
     setSelectedCategory(category);
     setMenuOpen(false);
-    navigation.navigate('ProductsList', { selectedCategory: category });
+    navigation.navigate("ProductsScreen", { categoryId: category.id })
 };
 
 
@@ -45,13 +45,13 @@ const handleSelectOption = (category) => {
         <View style={styles.container}>
             <View style={styles.topBar}>
                 <View style={styles.searchContainer}>
-                    <TouchableOpacity onPress={() => setMenuOpen(!menuOpen)} style={styles.menuIcon}>
+                    {/* <TouchableOpacity onPress={() => setMenuOpen(!menuOpen)} style={styles.menuIcon}>
                         {selectedCategory ? (
                             <Text style={styles.menuText}>{selectedCategory}</Text>
                         ) : (
                             <FontAwesomeIcon icon={faBars} size={20} color="#6e7a8a" />
                         )}
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
 
                     <TextInput
                         style={styles.searchInput}
@@ -101,7 +101,7 @@ const handleSelectOption = (category) => {
                                 onPress={() => {
                                     setSearchText('');
                                     setSearchResults([]);
-                                    navigation.navigate('ProductsScreen', { product: item });
+                                    navigation.navigate('ProductDetails', { product: item });
                                 }}
                             >
                                 <Text style={styles.resultText}>{item.name}</Text>
