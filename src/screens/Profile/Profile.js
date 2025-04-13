@@ -13,6 +13,7 @@ import {moderateScale, scale, verticalScale} from '../../styles/scaling';
 import colors from '../../styles/colors';
 import ImagePicker from 'react-native-image-crop-picker';
 import { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const Profile = ({navigation}) => {
@@ -102,9 +103,9 @@ const Profile = ({navigation}) => {
             </View>
           </View>
           <View>
-            <Text style={styles.userNameText}>{'Robi'}</Text>
-            <Text style={styles.userNumberText}>{'8967452743'}</Text>
-            <Text style={styles.userNumberText}>{'robil23@gmail.com'}</Text>
+            <Text style={styles.userNameText}>{'Krishna'}</Text>
+            <Text style={styles.userNumberText}>{'9701570870'}</Text>
+            <Text style={styles.userNumberText}>{'krishna@gmail.com'}</Text>
           </View>
           <FlatList
             data={Data}
@@ -117,10 +118,22 @@ const Profile = ({navigation}) => {
             )}
             keyExtractor={item => item.id.toString()}
             renderItem={({item}) => {
+              const handleItemPress = async () => {
+                if (item.label === 'Log out') {
+                  await AsyncStorage.removeItem('userData'); // or use clear() to remove everything
+                  navigation.reset({
+                    index: 0,
+                    routes: [{name: 'Login'}],
+                  });
+                } else if (item.label === 'Order History') {
+                  navigation.navigate('OrderHistory');
+                } else {
+                  Alert.alert(item.label); // for now, just alert others
+                }
+              };
+            
               return (
-                <TouchableOpacity 
-                onPress={()=>navigation.navigate('OrderHistory')}
-                style={{flexDirection: 'row', alignItems: 'center'}}>
+                <TouchableOpacity onPress={handleItemPress} style={{flexDirection: 'row', alignItems: 'center'}}>
                   <View
                     style={{
                       width: '20%',
@@ -139,8 +152,7 @@ const Profile = ({navigation}) => {
                       source={item.iconeLeft}
                     />
                   </View>
-                  <View
-                    style={{width: '55%', marginHorizontal: moderateScale(20)}}>
+                  <View style={{width: '55%', marginHorizontal: moderateScale(20)}}>
                     <Text>{item.label}</Text>
                   </View>
                   <View style={{width: '20%'}}>
@@ -155,6 +167,7 @@ const Profile = ({navigation}) => {
                 </TouchableOpacity>
               );
             }}
+            
           />
         </View>
       </View>

@@ -1,10 +1,19 @@
-import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Dimensions,
+} from "react-native";
+import ImageZoom from "react-native-image-pan-zoom";
+
+const screenWidth = Dimensions.get("window").width;
 
 const ProductDetails = ({ route }) => {
-  console.log("Route Params:", JSON.stringify(route.params, null, 2));
-
-  const { product } = route.params || {}; // Prevent crash
+  const { product } = route.params || {};
 
   if (!product || Object.keys(product).length === 0) {
     return (
@@ -14,17 +23,37 @@ const ProductDetails = ({ route }) => {
     );
   }
 
+  const [mainImage, setMainImage] = useState(product.image || "https://via.placeholder.com/250");
+
   return (
-    <View style={styles.container}>
-      {/* Safe Image Fallback */}
-      <Image
-        source={{ uri: product.image || "https://via.placeholder.com/250" }}
-        style={styles.productImage}
-      />
+    <ScrollView style={styles.container}>
+      <View style={styles.zoomWrapper}>
+        <ImageZoom
+          cropWidth={screenWidth - 40}
+          cropHeight={250}
+          imageWidth={screenWidth - 40}
+          imageHeight={250}
+        >
+          <Image
+            source={{ uri: mainImage }}
+            style={{ width: screenWidth - 40, height: 250, resizeMode: "contain" }}
+          />
+        </ImageZoom>
+      </View>
+
+      {/* Gallery Thumbnails */}
+      {Array.isArray(product.images) && product.images.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.thumbnailContainer}>
+          {product.images.map((imgUri, index) => (
+            <TouchableOpacity key={index} onPress={() => setMainImage(imgUri)}>
+              <Image source={{ uri: imgUri }} style={styles.thumbnail} />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+
       <Text style={styles.productName}>{product.name}</Text>
       <Text style={styles.brand}>Brand: {product.brand}</Text>
-
-      {/* Safe Category Fallback */}
       <Text style={styles.category}>
         Category: {product.category?.name || product.category || "Unknown"}
       </Text>
@@ -41,7 +70,7 @@ const ProductDetails = ({ route }) => {
       <TouchableOpacity style={[styles.button, { backgroundColor: "green" }]}>
         <Text style={styles.buttonText}>Buy Now</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -51,11 +80,22 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#fff",
   },
-  productImage: {
-    width: "100%",
-    height: 250,
-    resizeMode: "contain",
-    marginBottom: 10,
+  zoomWrapper: {
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  thumbnailContainer: {
+    flexDirection: "row",
+    marginBottom: 15,
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    resizeMode: "cover",
+    borderRadius: 5,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
   },
   productName: {
     fontSize: 22,
