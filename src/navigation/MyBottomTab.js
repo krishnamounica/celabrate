@@ -6,6 +6,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { moderateScale } from '../styles/scaling';
 import colors from '../styles/colors';
 import CategoryList from '../screens/Categories/Categories';
+import RequestsScreen from '../screens/Search/RequestsScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -34,7 +35,7 @@ const MyBottomTab = () => {
             case 'Home':
               iconName = focused ? 'home' : 'home-outline';
               break;
-            case 'Search':
+            case 'Request':
               iconName = focused ? 'search' : 'search-outline';
               break;
             case 'Categories':
@@ -55,7 +56,7 @@ const MyBottomTab = () => {
       })}
     >
       <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="Search" component={Search} />
+      <Tab.Screen name="Request" component={RequestsScreen} />
       <Tab.Screen name="Categories" component={CategoryList} />
       <Tab.Screen name="Cart" component={Cart} />
       <Tab.Screen name="Profile" component={Profile} />

@@ -7,14 +7,42 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Modal,
 } from "react-native";
-import ImageZoom from "react-native-image-pan-zoom";
+import ImageViewing from "react-native-image-viewing";
+import RazorpayCheckout from 'react-native-razorpay';
 
 const screenWidth = Dimensions.get("window").width;
 
 const ProductDetails = ({ route }) => {
   const { product } = route.params || {};
-
+  const openRazorpay = () => {
+    const amountInPaise = product.price * 100; // Razorpay needs amount in paise
+  
+    const options = {
+      description: 'Purchase Product',
+      currency: 'INR',
+      key: 'rzp_test_Zr4AoaaUCDwWjy', // Replace with your Razorpay test key
+      amount: amountInPaise.toString(),
+      name: 'YourAppName',
+      prefill: {
+        email: 'test@example.com',
+        contact: '9876543210',
+        name: 'Test User',
+      },
+      theme: { color: '#F37254' },
+    };
+  
+    RazorpayCheckout.open(options)
+      .then((data) => {
+        alert(`Success: ${data.razorpay_payment_id}`);
+        // Optionally, call backend to verify/capture payment
+      })
+      .catch((error) => {
+        alert(`Payment Failed: ${error.code} | ${error.description}`);
+      });
+  };
+  
   if (!product || Object.keys(product).length === 0) {
     return (
       <View style={styles.container}>
@@ -24,22 +52,24 @@ const ProductDetails = ({ route }) => {
   }
 
   const [mainImage, setMainImage] = useState(product.image || "https://via.placeholder.com/250");
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const imageList = [mainImage, ...(product.images || [])].map((uri) => ({ uri }));
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.zoomWrapper}>
-        <ImageZoom
-          cropWidth={screenWidth - 40}
-          cropHeight={250}
-          imageWidth={screenWidth - 40}
-          imageHeight={250}
-        >
-          <Image
-            source={{ uri: mainImage }}
-            style={{ width: screenWidth - 40, height: 250, resizeMode: "contain" }}
-          />
-        </ImageZoom>
-      </View>
+      {/* Main Image - open viewer on press */}
+      <TouchableOpacity onPress={() => setModalVisible(true)}>
+        <Image source={{ uri: mainImage }} style={styles.productImage} />
+      </TouchableOpacity>
+
+      {/* Fullscreen Modal Viewer */}
+      <ImageViewing
+        images={imageList}
+        imageIndex={0}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      />
 
       {/* Gallery Thumbnails */}
       {Array.isArray(product.images) && product.images.length > 0 && (
@@ -67,9 +97,10 @@ const ProductDetails = ({ route }) => {
       <TouchableOpacity style={styles.button}>
         <Text style={styles.buttonText}>Send Gift</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.button, { backgroundColor: "green" }]}>
-        <Text style={styles.buttonText}>Buy Now</Text>
-      </TouchableOpacity>
+      <TouchableOpacity style={[styles.button, { backgroundColor: "green" }]} onPress={openRazorpay}>
+  <Text style={styles.buttonText}>Buy Now</Text>
+</TouchableOpacity>
+
     </ScrollView>
   );
 };
@@ -80,9 +111,11 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#fff",
   },
-  zoomWrapper: {
-    alignItems: "center",
-    marginBottom: 15,
+  productImage: {
+    width: "100%",
+    height: 250,
+    resizeMode: "contain",
+    marginBottom: 10,
   },
   thumbnailContainer: {
     flexDirection: "row",
