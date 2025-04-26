@@ -14,15 +14,14 @@ export default Login = ({ navigation }) => {
   // const baseURL = config.BASE_URL;
 
   useEffect(() => {
-    // Check if userData is already stored
     const checkUserData = async () => {
       try {
         const storedUserData = await AsyncStorage.getItem('userData');
         if (storedUserData) {
           dispatch(saveUserData(JSON.parse(storedUserData)));
-          navigation.replace('MyBottomTab'); // Navigate to Home directly
+          navigation.replace('MyBottomTab');
         } else {
-          setLoading(false); // Show login screen if no session
+          setLoading(false); 
         }
       } catch (error) {
         console.error('Error reading AsyncStorage:', error);

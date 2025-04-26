@@ -8,14 +8,47 @@ import {
   ScrollView,
   Dimensions,
   Modal,
+  TextInput,
 } from "react-native";
 import ImageViewing from "react-native-image-viewing";
 import RazorpayCheckout from 'react-native-razorpay';
+import RNPickerSelect from "react-native-picker-select";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
+
 
 const screenWidth = Dimensions.get("window").width;
 
 const ProductDetails = ({ route }) => {
   const { product } = route.params || {};
+  const [giftModalVisible, setGiftModalVisible] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
+
+
+const [formStep, setFormStep] = useState(1);
+const [formData, setFormData] = useState({
+  name: "",
+  phone: "",
+  relation: "",
+  occasion: "",
+  date: "",
+  flatNo: "",
+  apartment: "",
+  landmark: "",
+  district: "",
+  state: "",
+  pincode: "",
+});
+const [showDatePicker, setShowDatePicker] = useState(false);
+
+
+const handleInputChange = (key, value) => {
+  setFormData({ ...formData, [key]: value });
+};
+
+
   const openRazorpay = () => {
     const amountInPaise = product.price * 100; // Razorpay needs amount in paise
   
@@ -88,20 +121,251 @@ const ProductDetails = ({ route }) => {
         Category: {product.category?.name || product.category || "Unknown"}
       </Text>
 
-      <Text style={styles.price}>Price: ${product.price}</Text>
+      <View style={styles.priceAndButtonsContainer}>
+  <Text style={styles.price}>Price: ${product.price}</Text>
+
+  <View style={styles.buttonsRow}>
+    <TouchableOpacity style={[styles.smallButton]} onPress={() => setGiftModalVisible(true)}>
+      <Text style={styles.buttonText}>Gift</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity style={[styles.smallButton, { backgroundColor: "green" }]} onPress={openRazorpay}>
+      <Text style={styles.buttonText}>Buy</Text>
+    </TouchableOpacity>
+  </View>
+</View>
+
       <Text style={styles.stock}>In Stock: {product.countInStock}</Text>
       <Text style={styles.rating}>Rating: {product.rating} ⭐</Text>
-      <Text style={styles.description}>{product.description}</Text>
+      <View style={{ marginTop: 10 }}>
+  <Text
+    style={styles.description}
+    numberOfLines={showFullDescription ? undefined : 5}
+    onTextLayout={(e) => {
+      // Only check truncation when NOT expanded
+      if (!showFullDescription) {
+        setIsDescriptionTruncated(e.nativeEvent.lines.length > 5);
+      }
+    }}
+  >
+    {product.description || "No description available."}
+  </Text>
 
-      {/* Buttons */}
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Send Gift</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={[styles.button, { backgroundColor: "green" }]} onPress={openRazorpay}>
-  <Text style={styles.buttonText}>Buy Now</Text>
-</TouchableOpacity>
+  {/* Toggle Button */}
+  {isDescriptionTruncated && (
+    <TouchableOpacity
+      onPress={() => setShowFullDescription(!showFullDescription)}
+      style={{ flexDirection: "row", alignItems: "center", marginTop: 5 }}
+    >
+      <Icon
+        name={showFullDescription ? "expand-less" : "expand-more"}
+        size={24}
+        color="#007bff"
+      />
+      <Text style={{ color: "#007bff", marginLeft: 5 }}>
+        {showFullDescription ? "Show Less" : "Read More"}
+      </Text>
+    </TouchableOpacity>
+  )}
+</View>
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={giftModalVisible}
+  onRequestClose={() => {
+    setGiftModalVisible(false);
+    setFormStep(1);
+  }}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      {/* Progress Bar */}
+      <View style={styles.progressContainer}>
+        {[1, 2, 3, 4].map((s) => (
+          <View
+            key={s}
+            style={[
+              styles.progressStep,
+              { backgroundColor: formStep >= s ? "#007bff" : "#ccc" },
+            ]}
+          />
+        ))}
+      </View>
 
-    </ScrollView>
+      {/* Step Descriptions */}
+      <Text style={styles.modalTitle}>Step {formStep}</Text>
+      {formStep === 1 && <Text style={styles.modalText}>Enter recipient's basic contact information.</Text>}
+      {formStep === 2 && <Text style={styles.modalText}>Specify your relationship and the occasion.</Text>}
+      {formStep === 3 && <Text style={styles.modalText}>Provide the building and location details.</Text>}
+      {formStep === 4 && <Text style={styles.modalText}>Finish with district, state, and pincode.</Text>}
+
+      {/* Step 1 */}
+      {formStep === 1 && (
+        <>
+          <Text style={styles.label}>Name</Text>
+          <TextInput
+            placeholder="Enter recipient's name"
+            style={styles.input}
+            value={formData.name}
+            onChangeText={(text) => handleInputChange("name", text)}
+          />
+          <Text style={styles.label}>Phone</Text>
+          <TextInput
+            placeholder="Enter phone number"
+            keyboardType="phone-pad"
+            style={styles.input}
+            value={formData.phone}
+            onChangeText={(text) => handleInputChange("phone", text)}
+          />
+        </>
+      )}
+
+      {/* Step 2 */}
+      {formStep === 2 && (
+  <>
+    <Text style={styles.label}>Relation</Text>
+    <RNPickerSelect
+      onValueChange={(value) => handleInputChange("relation", value)}
+      value={formData.relation}
+      items={[
+        { label: "Friend", value: "Friend" },
+        { label: "Brother", value: "Brother" },
+        { label: "Sister", value: "Sister" },
+        { label: "Mother", value: "Mother" },
+        { label: "Father", value: "Father" },
+      ]}
+      placeholder={{ label: "Select a relation", value: null }}
+      style={pickerSelectStyles}
+    />
+
+    <Text style={styles.label}>Occasion</Text>
+    <RNPickerSelect
+      onValueChange={(value) => handleInputChange("occasion", value)}
+      value={formData.occasion}
+      items={[
+        { label: "Birthday", value: "Birthday" },
+        { label: "Anniversary", value: "Anniversary" },
+        { label: "Wedding", value: "Wedding" },
+        { label: "Graduation", value: "Graduation" },
+        { label: "Festival", value: "Festival" },
+      ]}
+      placeholder={{ label: "Select an occasion", value: null }}
+      style={pickerSelectStyles}
+    />
+
+    <Text style={styles.label}>Date</Text>
+    <TouchableOpacity
+      style={[styles.input, { justifyContent: "center" }]}
+      onPress={() => setShowDatePicker(true)}
+    >
+      <Text>{formData.date || "Select date"}</Text>
+    </TouchableOpacity>
+    {showDatePicker && (
+      <DateTimePicker
+        mode="date"
+        display="default"
+        value={new Date()}
+        onChange={(event, selectedDate) => {
+          setShowDatePicker(false);
+          if (selectedDate) {
+            const formattedDate = selectedDate.toLocaleDateString("en-GB");
+            handleInputChange("date", formattedDate);
+          }
+        }}
+      />
+    )}
+  </>
+)}
+      {/* Step 3 */}
+      {formStep === 3 && (
+        <>
+          <Text style={styles.label}>Flat No.</Text>
+          <TextInput
+            placeholder="Enter flat number"
+            style={styles.input}
+            value={formData.flatNo}
+            onChangeText={(text) => handleInputChange("flatNo", text)}
+          />
+          <Text style={styles.label}>Apartment</Text>
+          <TextInput
+            placeholder="Apartment name"
+            style={styles.input}
+            value={formData.apartment}
+            onChangeText={(text) => handleInputChange("apartment", text)}
+          />
+          <Text style={styles.label}>Landmark</Text>
+          <TextInput
+            placeholder="Nearby landmark"
+            style={styles.input}
+            value={formData.landmark}
+            onChangeText={(text) => handleInputChange("landmark", text)}
+          />
+        </>
+      )}
+
+      {/* Step 4 */}
+      {formStep === 4 && (
+        <>
+          <Text style={styles.label}>District</Text>
+          <TextInput
+            placeholder="Enter district"
+            style={styles.input}
+            value={formData.district}
+            onChangeText={(text) => handleInputChange("district", text)}
+          />
+          <Text style={styles.label}>State</Text>
+          <TextInput
+            placeholder="Enter state"
+            style={styles.input}
+            value={formData.state}
+            onChangeText={(text) => handleInputChange("state", text)}
+          />
+          <Text style={styles.label}>Pincode</Text>
+          <TextInput
+            placeholder="Enter pincode"
+            keyboardType="numeric"
+            style={styles.input}
+            value={formData.pincode}
+            onChangeText={(text) => handleInputChange("pincode", text)}
+          />
+        </>
+      )}
+
+      {/* Navigation Buttons */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
+        {formStep > 1 && (
+          <TouchableOpacity
+            style={[styles.button, { flex: 1, marginRight: 5 }]}
+            onPress={() => setFormStep(formStep - 1)}
+          >
+            <Text style={styles.buttonText}>Back</Text>
+          </TouchableOpacity>
+        )}
+        {formStep < 4 ? (
+          <TouchableOpacity
+            style={[styles.button, { flex: 1, marginLeft: formStep > 1 ? 5 : 0 }]}
+            onPress={() => setFormStep(formStep + 1)}
+          >
+            <Text style={styles.buttonText}>Next</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.button, { flex: 1, marginLeft: 5 }]}
+            onPress={() => {
+              alert("Gift details submitted!");
+              console.log("Gift Form Data:", formData);
+              setGiftModalVisible(false);
+              setFormStep(1);
+            }}
+          >
+            <Text style={styles.buttonText}>Submit</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  </View>
+</Modal>
+</ScrollView>
   );
 };
 
@@ -155,10 +419,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "gold",
   },
-  description: {
-    fontSize: 14,
-    marginTop: 10,
-  },
+ 
   button: {
     backgroundColor: "#007bff",
     padding: 12,
@@ -171,6 +432,112 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "85%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+
+  input: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 5,
+    justifyContent:'left'
+  },
+  progressContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
+    width: "100%",
+  },
+  progressStep: {
+    flex: 1,
+    height: 6,
+    marginHorizontal: 3,
+    borderRadius: 3,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  modalText: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  description: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#333",
+  },
+  priceAndButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  buttonsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  smallButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+    backgroundColor: "#007bff",
+    marginLeft: 10,
+  },
+
 });
+
+const pickerSelectStyles = {
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    color: "black",
+    paddingRight: 30,
+    marginBottom: 10,
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    color: "black",
+    paddingRight: 30,
+    marginBottom: 10,
+  },
+};
+
 
 export default ProductDetails;

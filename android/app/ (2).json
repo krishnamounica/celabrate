@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1032505948124",
+    "project_id": "wishandsurprise-ef3f1",
+    "storage_bucket": "wishandsurprise-ef3f1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1032505948124:android:bf7a1a1596b94234f28119",
+        "android_client_info": {
+          "package_name": "com.wishandsurprise"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1032505948124-bbsbnugapovlbigjlo8henpsn2te22rp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wishandsurprise",
+            "certificate_hash": "a789e505c817a122ea906ea6eaa3d48b3a30ab18"
+          }
+        },
+        {
+          "client_id": "1032505948124-krdl86l3c98aele80tc4u24j75nnrpjf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDtvDmdVChZhQRIcEC8gVUjOgEEGnHoitU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1032505948124-krdl86l3c98aele80tc4u24j75nnrpjf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

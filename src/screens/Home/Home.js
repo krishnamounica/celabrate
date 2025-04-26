@@ -6,6 +6,8 @@ import RelationshipScreen from '../RelationshipScreen';
 import Categories from '../Categories';
 import Banner from './Banner';
 import Header from './Header';
+import CelebrationsCalendar from '../CelebrationsCalendar';
+import Gsignin from '../Gsignin';
 
 const Home = () => {
   return (
@@ -16,12 +18,16 @@ const Home = () => {
         <View style={styles.firstSection}>
         <Header />
       </View>
+
         <View style={styles.firstSection}>
         <Banner />
       </View>
-        <View style={styles.section}>
-          <BestOffers />
-        </View>
+      
+        <View style={styles.firstSection}>
+        <Gsignin />
+      </View>
+      
+        
        {/* <View style={styles.section}>
           <Categories />
         </View> */}
@@ -32,6 +38,9 @@ const Home = () => {
 
         <View style={styles.section}>
           <ProductListScreen />
+        </View>
+        <View style={styles.section}>
+          <CelebrationsCalendar />
         </View>
 
       </ScrollView>

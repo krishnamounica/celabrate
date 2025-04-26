@@ -101,14 +101,20 @@ const ProductListScreen = () => {
       ) : (
 
         <FlatList
-          data={products}
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item, index) => item._id ? item._id.toString() : index.toString()}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContainer}
-        />
+        data={products}
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item, index) => item._id ? item._id.toString() : index.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContainer}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        snapToInterval={190} // card width + spacing
+      />
+      
       )}
+      <View pointerEvents="none" style={styles.rightFade} />
+
     </View>
   );
 };
@@ -133,9 +139,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
-  listContainer: {
-    paddingHorizontal: 10,
-  },
+  // listContainer: {
+  //   paddingHorizontal: 10,
+  // },
   card: {
     width: 180,
     backgroundColor: '#fff',
@@ -147,6 +153,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
     elevation: 5,
+  
   },
   priceContainer: {
     backgroundColor: 'green',
@@ -234,6 +241,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold'
   },
+
+  listContainer: {
+    paddingLeft: 10,
+    paddingRight: 30, // allow room for gradient
+  },
+  rightFade: {
+    position: 'absolute',
+    top: 80, // adjust based on layout
+    right: 0,
+    height: 200, // adjust based on card height
+    width: 30,
+    backgroundColor: 'transparent',
+    zIndex: 1,
+    backgroundImage: 'linear-gradient(to left, white, rgba(255,255,255,0))', // iOS WebView way
+  },
+  
+  
 });
 
 export default ProductListScreen;

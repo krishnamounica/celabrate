@@ -1,4 +1,4 @@
-package com.app
+package com.Wishandsurprise
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -37,7 +37,7 @@ class MainApplication : Application(), ReactApplication {
     super.onCreate()
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
-      // If you opted-in for the New Architecture, we load the native entry point for this app.
+      // If you opted-in for the New Architecture, we load the native entry point for this Wishandsurprise.
       load()
     }
   }
