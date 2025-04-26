@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
-// import { saveUserData } from './store';
-// import config from './config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveUserData } from '../../redux/store';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
 
-export default Login = ({ navigation }) => {
+const Login = ({ navigation }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(true);
+  const [signingIn, setSigningIn] = useState(false);
   const dispatch = useDispatch();
-  // const baseURL = config.BASE_URL;
 
   useEffect(() => {
     const checkUserData = async () => {
@@ -21,7 +21,7 @@ export default Login = ({ navigation }) => {
           dispatch(saveUserData(JSON.parse(storedUserData)));
           navigation.replace('MyBottomTab');
         } else {
-          setLoading(false); 
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error reading AsyncStorage:', error);
@@ -30,6 +30,13 @@ export default Login = ({ navigation }) => {
     };
 
     checkUserData();
+
+    // Google Sign-In configuration
+    GoogleSignin.configure({
+      webClientId: '1062172501798-ho34oecubhlu6sp9l8mjsehd0rbnqllt.apps.googleusercontent.com', // Replace with your actual webClientId
+      offlineAccess: true,
+      forceCodeForRefreshToken: true,
+    });
   }, []);
 
   const handleChange = (key, value) => {
@@ -58,6 +65,47 @@ export default Login = ({ navigation }) => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    if (signingIn) return;
+
+    try {
+      setSigningIn(true);
+
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+
+      const result = await GoogleSignin.signIn();
+      console.log('Google Sign-In result:', result);
+
+      const idToken = result?.idToken || result?.data?.idToken;
+
+      if (!idToken) {
+        throw new Error('Google Sign-In failed: idToken is missing');
+      }
+
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+      const userCredential = await auth().signInWithCredential(googleCredential);
+
+      const userData = {
+        email: userCredential.user.email,
+        name: userCredential.user.displayName,
+        photo: userCredential.user.photoURL,
+        uid: userCredential.user.uid,
+        provider: 'google',
+      };
+
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
+      dispatch(saveUserData(userData));
+
+      navigation.replace('MyBottomTab');
+    } catch (error) {
+      console.error('Google Sign-In Error:', error);
+      Alert.alert('Error', error?.message || 'Google Sign-In Failed');
+    } finally {
+      setSigningIn(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -70,6 +118,7 @@ export default Login = ({ navigation }) => {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.formWrapper}>
         <Text style={styles.title}>Login</Text>
+
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -84,10 +133,21 @@ export default Login = ({ navigation }) => {
           onChangeText={(text) => handleChange('password', text)}
           secureTextEntry
         />
-        <Button title="Login" onPress={handleLogin} />
+
+        <Button title="Login with Email" onPress={handleLogin} />
+
+        <View style={{ marginVertical: 10 }}>
+          <Button
+            title={signingIn ? 'Signing in...' : 'Sign in with Google'}
+            onPress={handleGoogleSignIn}
+            disabled={signingIn}
+          />
+        </View>
+
         <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
           <Text style={styles.registerText}>Don't have an account? Register</Text>
         </TouchableOpacity>
+
         <TouchableOpacity onPress={() => navigation.navigate('ProductForm')}>
           <Text style={styles.registerText}>Add product</Text>
         </TouchableOpacity>
@@ -144,3 +204,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+export default Login;
