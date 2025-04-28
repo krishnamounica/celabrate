@@ -76,6 +76,30 @@ const Login = ({ navigation }) => {
 
       const result = await GoogleSignin.signIn();
       console.log('Google Sign-In result:', result);
+      let rr={
+        email: result.data.user.email,
+        name: result.data.user.name,
+        token:result.data.idToken
+            }
+
+      const url = `https://easyshop-7095.onrender.com/api/v1/users/guser`;
+      try {
+        const response = await axios.post(url, rr, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+  console.log(response)
+        if (response.status === 200 || response.status === 201) {
+          Alert.alert('Success', 'Logged in successfully!');
+          await AsyncStorage.setItem('userData', JSON.stringify(response.data));
+          dispatch(saveUserData(response.data));
+          navigation.replace('MyBottomTab');
+        }
+      } catch (error) {
+        console.error(error);
+        Alert.alert('Error', error.response?.data?.message || 'Something went wrong');
+      } finally {
+        setLoading(false);
+      }
 
       const idToken = result?.idToken || result?.data?.idToken;
 
