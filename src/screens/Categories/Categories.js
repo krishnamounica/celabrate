@@ -8,23 +8,33 @@ const CategoryList = () => {
   const { items: products } = useSelector((state) => state.products);
   const navigation = useNavigation();
 
-  // Extract unique categories
+  // Extract unique categories safely
   const categories = Array.from(
-    new Map(products.map((product) => [product.category.id, product.category]))
+    new Map(
+      (products || []) // in case products is undefined
+        .filter((product) => product?.category?.id) // safe filtering
+        .map((product) => [product.category.id, product.category])
+    )
   ).map(([_, category]) => category);
+
+  const handleCategoryPress = (item) => {
+    if (item?.id) {
+      navigation.navigate("ProductsScreen", { categoryId: item.id });
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Header />
       <FlatList
         data={categories}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
         renderItem={({ item }) => (
           <TouchableOpacity 
-            style={[styles.categoryBox, { backgroundColor: item.color || "#ccc" }]}
-            onPress={() => navigation.navigate("ProductsScreen", { categoryId: item.id })}
+            style={[styles.categoryBox, { backgroundColor: item?.color || "#ccc" }]}
+            onPress={() => handleCategoryPress(item)}
           >
-            <Text style={styles.categoryText}>{item.name}</Text>
+            <Text style={styles.categoryText}>{item?.name || "Unnamed"}</Text>
           </TouchableOpacity>
         )}
       />

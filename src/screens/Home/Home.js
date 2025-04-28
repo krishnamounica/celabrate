@@ -22,15 +22,10 @@ const Home = () => {
         <View style={styles.firstSection}>
         <Banner />
       </View>
-      
-        <View style={styles.firstSection}>
-        <Gsignin />
-      </View>
-      
-        
-       {/* <View style={styles.section}>
-          <Categories />
-        </View> */}
+
+       <View style={styles.section}>
+          <BestOffers />
+        </View>
 
         <View style={styles.section}>
           <RelationshipScreen />

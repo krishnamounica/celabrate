@@ -5,16 +5,19 @@ import {
 import { useSelector } from "react-redux";
 
 const ProductsScreen = ({ route }) => {
-  const { categoryId } = route.params;
+  const { categoryId } = route.params || {}; // safe destructure
+  console.log(categoryId)
   const { items: products } = useSelector((state) => state.products);
 
-  // Filter products by category
-  const filteredProducts = products.filter(product => product.category.id === categoryId);
+  // Safely filter products
+  const filteredProducts = (products || []).filter(
+    (product) => product?.category?.id === categoryId
+  );
 
   return (
     <ScrollView style={styles.container}>
       {filteredProducts.length > 0 ? (
-        filteredProducts.map((product) => <ProductCard key={product.id} product={product} />)
+        filteredProducts.map((product) => <ProductCard key={product?.id || Math.random()} product={product} />)
       ) : (
         <Text style={styles.emptyText}>No products found</Text>
       )}
@@ -24,16 +27,22 @@ const ProductsScreen = ({ route }) => {
 
 // Individual Product Card Component
 const ProductCard = ({ product }) => {
-  const [mainImage, setMainImage] = useState(product.image); // First image as default
+  const [mainImage, setMainImage] = useState(product?.image);
 
   return (
     <View style={styles.productCard}>
       {/* Main Image */}
-      <Image source={{ uri: mainImage }} style={styles.productImage} />
+      {mainImage ? (
+        <Image source={{ uri: mainImage }} style={styles.productImage} />
+      ) : (
+        <View style={[styles.productImage, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text>No Image</Text>
+        </View>
+      )}
 
       {/* Thumbnails */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.thumbnailContainer}>
-        {product.images.map((img, index) => (
+        {(product?.images || []).map((img, index) => (
           <TouchableOpacity key={index} onPress={() => setMainImage(img)}>
             <Image source={{ uri: img }} style={styles.thumbnail} />
           </TouchableOpacity>
@@ -42,15 +51,15 @@ const ProductCard = ({ product }) => {
 
       {/* Product Details */}
       <View style={styles.detailsContainer}>
-        <Text style={styles.productName}>{product.name}</Text>
-        <Text style={styles.brandText}>Brand: {product.brand}</Text>
-        <Text style={styles.categoryText}>Category: {product.category.name}</Text>
-        <Text style={styles.priceText}>Price: ${product.price}</Text>
+        <Text style={styles.productName}>{product?.name || "Unnamed Product"}</Text>
+        <Text style={styles.brandText}>Brand: {product?.brand || "Unknown"}</Text>
+        <Text style={styles.categoryText}>Category: {product?.category?.name || "Unknown"}</Text>
+        <Text style={styles.priceText}>Price: ${product?.price ?? "N/A"}</Text>
         <Text style={styles.stockText}>
-          {product.countInStock > 0 ? "In Stock" : "Out of Stock"}
+          {(product?.countInStock ?? 0) > 0 ? "In Stock" : "Out of Stock"}
         </Text>
-        <Text style={styles.ratingText}>⭐ Rating: {product.rating}/5</Text>
-        <Text style={styles.description}>{product.description}</Text>
+        <Text style={styles.ratingText}>⭐ Rating: {product?.rating ?? "0"}/5</Text>
+        <Text style={styles.description}>{product?.description || "No description available."}</Text>
       </View>
 
       {/* Buttons */}

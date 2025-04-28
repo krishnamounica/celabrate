@@ -5,7 +5,8 @@ import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveUserData } from '../../redux/store';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import auth from '@react-native-firebase/auth';
+import auth, { firebase } from '@react-native-firebase/auth';
+
 
 const Login = ({ navigation }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -33,7 +34,7 @@ const Login = ({ navigation }) => {
 
     // Google Sign-In configuration
     GoogleSignin.configure({
-      webClientId: '1062172501798-ho34oecubhlu6sp9l8mjsehd0rbnqllt.apps.googleusercontent.com', // Replace with your actual webClientId
+      webClientId: '1062172501798-ho34oecubhlu6sp9l8mjsehd0rbnqllt.apps.googleusercontent.com',
       offlineAccess: true,
       forceCodeForRefreshToken: true,
     });
@@ -82,8 +83,7 @@ const Login = ({ navigation }) => {
         throw new Error('Google Sign-In failed: idToken is missing');
       }
 
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-
+      const googleCredential = firebase.auth.GoogleAuthProvider.credential(idToken);
       const userCredential = await auth().signInWithCredential(googleCredential);
 
       const userData = {

@@ -1,23 +1,44 @@
-import React from "react";
-import { View, Text, Image, FlatList, StyleSheet, ScrollView } from "react-native";
-
-const relationships = [
-  { id: "1", name: "men", image: require("../../src/assets/images/men.png") },
-  { id: "2", name: "women", image: require("../../src/assets/images/women.png") },
-  { id: "3", name: "kids", image: require("../../src/assets/images/kids.png") },
-  { id: "4", name: "Friend", image: require("../../src/assets/images/friend.png") },
-  { id: "5", name: "Girlfriend", image: require("../../src/assets/images/girlfriend.png") },
-  { id: "6", name: "Boyfriend", image: require("../../src/assets/images/boyfriend.png") },
-  { id: "7", name: "Wife", image: require("../../src/assets/images/wife.png") },
-  { id: "8", name: "Husband", image: require("../../src/assets/images/husband.png") },
-];
+import axios from "axios";
+import React, { useState ,useEffect } from "react";
+import { View, Text, Image, FlatList, StyleSheet, ScrollView,ActivityIndicator, TouchableOpacity} from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 const RelationshipScreen = () => {
+  const [relationships, setRelationships] = useState([]);
+  const [loading, setLoading] = useState(true);
+ const navigation = useNavigation();
+  useEffect(() => {
+    fetchRelationships();
+  }, []);
+  const BASE_URL = "https://easyshop-7095.onrender.com"; // or http://10.0.2.2:3000 if you're on Android emulator
+
+  const fetchRelationships = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/v1/categories`);
+      const filteredData = response.data
+        .filter(item => item.block === "relation")
+        .map(item => ({
+          ...item,
+          image: item.image.startsWith('http') ? item.image : `${BASE_URL}${item.image}`,
+        }));
+      setRelationships(filteredData);
+    } catch (error) {
+      console.error("Error fetching relationships:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleCategoryPress = (item) => {
+    if (item?.id) {
+      navigation.navigate("ProductsScreen", { categoryId: item.id });
+    }
+  };
+
   return (
     // Outer container with enhanced styling
     <View style={styles.outerContainer}>
       <Text style={styles.header}>For Every Relationship</Text>
-      <FlatList
+      {loading ? "...loading" :<FlatList
         data={relationships}
         keyExtractor={(item) => item.id}
         numColumns={3}
@@ -25,12 +46,17 @@ const RelationshipScreen = () => {
         renderItem={({ item }) => (
           <View style={styles.itemContainer}>
             <View style={styles.imageContainer}>
-              <Image source={item.image} style={styles.image} />
+               <TouchableOpacity 
+                          style={[styles.categoryBox, { backgroundColor: item?.color || "#ccc" }]}
+                          onPress={() => handleCategoryPress(item)}
+                        >
+            <Image source={{ uri: item.image }} style={styles.image} />
+            </TouchableOpacity>
             </View>
             <Text style={styles.label}>{item.name}</Text>
           </View>
         )}
-      />
+      />}
     </View>
   );
 };

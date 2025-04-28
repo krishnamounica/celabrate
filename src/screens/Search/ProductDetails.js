@@ -15,6 +15,7 @@ import RazorpayCheckout from 'react-native-razorpay';
 import RNPickerSelect from "react-native-picker-select";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import axios from 'axios';
 
 
 
@@ -268,7 +269,10 @@ const handleInputChange = (key, value) => {
         onChange={(event, selectedDate) => {
           setShowDatePicker(false);
           if (selectedDate) {
-            const formattedDate = selectedDate.toLocaleDateString("en-GB");
+            const year = selectedDate.getFullYear();
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`; // yyyy-mm-dd
             handleInputChange("date", formattedDate);
           }
         }}
@@ -351,12 +355,56 @@ const handleInputChange = (key, value) => {
         ) : (
           <TouchableOpacity
             style={[styles.button, { flex: 1, marginLeft: 5 }]}
-            onPress={() => {
-              alert("Gift details submitted!");
-              console.log("Gift Form Data:", formData);
-              setGiftModalVisible(false);
-              setFormStep(1);
+            onPress={async () => {
+              try {
+                const payload = {
+                  name: formData.name,
+                  phone: formData.phone,
+                  relation: formData.relation,
+                  occasion: formData.occasion,
+                  date: formData.date,
+                  flatNumber: formData.flatNo,
+                  building: formData.apartment,
+                  landmark: formData.landmark,
+                  district: formData.district,
+                  state: formData.state,
+                  pincode: formData.pincode,
+                  productId: product._id,
+                  productName: product.name,    
+                  productPrice: product.price,   
+                  status: "pending",
+                  feedback: [],
+                  payment: false,
+                  sharable: false,
+                  userName: "suresh", 
+                  paymentlink: "",
+                  sharablelink: "",
+                  totalAmount: product.price,
+                  remainingAmount: product.price,
+                  noOfPayments: 0,
+                };
+            
+                const response = await axios.post('https://easyshop-7095.onrender.com/api/v1/giftrequests', payload, {
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2Nzk3MWQ0MmY2NmFjZDJkYjk5OGU1MTYiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3NDU4MDgzMDMsImV4cCI6MTc0NTg5NDcwM30.kMhdnSdQ2-IFaldXj0n3WJobSP6uHmfWuRhheQqYDA0'
+                  }
+                });
+            
+                if (response.status === 200 || response.status === 201) {
+                  alert("Gift request submitted successfully!");
+                  console.log("API Response:", response.data);
+                  setGiftModalVisible(false);
+                  setFormStep(1);
+                } else {
+                  alert("Failed to submit gift request. Try again.");
+                }
+              } catch (error) {
+                console.error("Error submitting gift request:", error);
+                alert("Error submitting gift request!");
+              }
             }}
+            
           >
             <Text style={styles.buttonText}>Submit</Text>
           </TouchableOpacity>

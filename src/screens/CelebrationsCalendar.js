@@ -1,49 +1,54 @@
-import React from 'react';
-import { View, Text, Image, FlatList, StyleSheet, Dimensions } from 'react-native';
+import axios from 'axios';
+import React ,{useState,useEffect} from 'react';
+import { View, Text, Image, FlatList, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get('window');
 
-const celebrations = [
-  {
-    id: '1',
-    date: '19ᵀᴴ APR',
-    title: 'Husband Appreciation Day',
-    image: require('../../src/assets/husband.png'),
-  },
-  {
-    id: '2',
-    date: '20ᵀᴴ APR',
-    title: 'Easter',
-    image: require('../../src/assets/easter.png'),
-  },
-  {
-    id: '3',
-    date: '22ᴺᴰ APR',
-    title: 'Earth Day',
-    image: require('../../src/assets/earth.png'),
-  },
-  {
-    id: '4',
-    date: '11ᵀᴴ MAY',
-    title: "Mother's Day",
-    image: require('../../src/assets/mother.png'),
-  },
-  {
-    id: '5',
-    date: '24ᵀᴴ MAY',
-    title: "Brother's Day",
-    image: require('../../src/assets/brother.png'),
-  },
-];
+
 
 const CelebrationsCalendar = () => {
+    const [relationships, setRelationships] = useState([]);
+    const [loading, setLoading] = useState(true);
+   const navigation = useNavigation();
+    useEffect(() => {
+      fetchRelationships();
+    }, []);
+    const BASE_URL = "https://easyshop-7095.onrender.com"; // or http://10.0.2.2:3000 if you're on Android emulator
+  
+    const fetchRelationships = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/v1/categories`);
+        const filteredData = response.data
+          .filter(item => item.block === "dates")
+          .map(item => ({
+            ...item,
+            image: item.image.startsWith('http') ? item.image : `${BASE_URL}${item.image}`,
+          }));
+        setRelationships(filteredData);
+      } catch (error) {
+        console.error("Error fetching relationships:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    const handleCategoryPress = (item) => {
+      if (item?.id) {
+        navigation.navigate("ProductsScreen", { categoryId: item.id });
+      }
+    };
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.dateContainer}>
         <Text style={styles.dateText}>{item.date}</Text>
       </View>
-      <Image source={item.image} style={styles.image} resizeMode="cover" />
-      <Text style={styles.title}>{item.title}</Text>
+        <TouchableOpacity 
+                                style={[styles.categoryBox, { backgroundColor: item?.color || "#ccc" }]}
+                                onPress={() => handleCategoryPress(item)}
+                              >
+                  <Image source={{ uri: item.image }} style={styles.image} />
+                  </TouchableOpacity>
+      <Text style={styles.title}>{item.name}</Text>
     </View>
   );
 
@@ -51,7 +56,7 @@ const CelebrationsCalendar = () => {
     <View style={styles.container}>
       <Text style={styles.header}>Celebrations Calendar</Text>
       <FlatList
-        data={celebrations}
+        data={relationships}
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
@@ -82,7 +87,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderRadius: 16,
     backgroundColor: '#f8f9fa',
-    overflow: 'hidden',
+    // overflow: 'hidden',
     alignItems: 'center',
   },
   dateContainer: {
