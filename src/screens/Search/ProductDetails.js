@@ -57,7 +57,7 @@ const openRazorpay = async () => {
   // console.log("====userData=====",userDataString)
   const userId = userData.id
   try {
-    const orderResponse = await fetch('http://192.168.1.4:3000/api/v1/users/create-order', {
+    const orderResponse = await fetch('https://easyshop-7095.onrender.com/api/v1/users/create-order', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -88,8 +88,7 @@ const openRazorpay = async () => {
 
     RazorpayCheckout.open(options)
       .then((data) => {
-      console.log("==========data===",data)
-        return fetch('http://192.168.1.4:3000/api/v1/users/save-payment', {
+        return fetch('https://easyshop-7095.onrender.com/api/v1/users/save-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
