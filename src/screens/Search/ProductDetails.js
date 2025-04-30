@@ -16,6 +16,7 @@ import RNPickerSelect from "react-native-picker-select";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
@@ -44,21 +45,38 @@ const [formData, setFormData] = useState({
 });
 const [showDatePicker, setShowDatePicker] = useState(false);
 
-
 const handleInputChange = (key, value) => {
   setFormData({ ...formData, [key]: value });
 };
+// Call your backend to create order
+const openRazorpay = async () => {
+  const amountInPaise = product.price * 100;
+  const userDataString = await AsyncStorage.getItem('userData');
+  const userData = JSON.parse(userDataString);
+  // console.log("LOADED: ", userData);
+  // console.log("====userData=====",userDataString)
+  const userId = userData.id
+  try {
+    const orderResponse = await fetch('http://192.168.1.4:3000/api/v1/users/create-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        amount: amountInPaise,
+        currency: 'INR',
+      }),
+    });
 
+    const orderData = await orderResponse.json();
 
-  const openRazorpay = () => {
-    const amountInPaise = product.price * 100; // Razorpay needs amount in paise
-  
     const options = {
       description: 'Purchase Product',
       currency: 'INR',
-      key: 'rzp_test_Zr4AoaaUCDwWjy', // Replace with your Razorpay test key
-      amount: amountInPaise.toString(),
-      name: 'YourAppName',
+      key: 'rzp_test_Zr4AoaaUCDwWjy',
+      amount: 499,
+      name: 'Wish and Surprise',
+      order_id: orderData.orderId, // Ensure this matches the backend response
       prefill: {
         email: 'test@example.com',
         contact: '9876543210',
@@ -66,17 +84,36 @@ const handleInputChange = (key, value) => {
       },
       theme: { color: '#F37254' },
     };
-  
+
+
     RazorpayCheckout.open(options)
       .then((data) => {
-        alert(`Success: ${data.razorpay_payment_id}`);
-        // Optionally, call backend to verify/capture payment
+      console.log("==========data===",data)
+        return fetch('http://192.168.1.4:3000/api/v1/users/save-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_payment_id: data.razorpay_payment_id,
+            razorpay_order_id: data.razorpay_order_id,
+            razorpay_signature: data.razorpay_signature,
+            productId: product.id,
+            amount:amountInPaise/100,
+            userId:userId ,
+          }),
+        });
       })
-      .catch((error) => {
-        alert(`Payment Failed: ${error.code} | ${error.description}`);
+      .then(response => response.json())
+      .then(result => {
+        console.log('Saved Payment Successfully:', result);
+      })
+      .catch(error => {
+        console.error('Error saving payment:', error);
       });
-  };
-  
+  } catch (err) {
+    console.error('Error initiating Razorpay payment:', err);
+  }
+};
+
   if (!product || Object.keys(product).length === 0) {
     return (
       <View style={styles.container}>

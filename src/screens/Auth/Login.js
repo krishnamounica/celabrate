@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveUserData } from '../../redux/store';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth, { firebase } from '@react-native-firebase/auth';
 
 
@@ -19,7 +19,7 @@ const Login = ({ navigation }) => {
       try {
         const storedUserData = await AsyncStorage.getItem('userData');
         if (storedUserData) {
-          dispatch(saveUserData(JSON.parse(storedUserData)));
+          // dispatch(saveUserData(JSON.parse(storedUserData)));
           navigation.replace('MyBottomTab');
         } else {
           setLoading(false);
@@ -76,24 +76,45 @@ const Login = ({ navigation }) => {
 
       const result = await GoogleSignin.signIn();
       console.log('Google Sign-In result:', result);
-      let rr={
-        email: result.data.user.email,
-        name: result.data.user.name,
-        token:result.data.idToken
-            }
+      const { email, name, photo, id } = result.data.user;
+    
+
+let rr = {
+  email,
+  name,
+  token: result.data.idToken
+};
 
       const url = `https://easyshop-7095.onrender.com/api/v1/users/guser`;
       try {
+        console.log("===================1============")
         const response = await axios.post(url, rr, {
           headers: { 'Content-Type': 'application/json' },
         });
-  console.log(response)
-        if (response.status === 200 || response.status === 201) {
-          Alert.alert('Success', 'Logged in successfully!');
-          await AsyncStorage.setItem('userData', JSON.stringify(response.data));
-          dispatch(saveUserData(response.data));
-          navigation.replace('MyBottomTab');
-        }
+      // console.log("==============",response.data,"==========")
+      // if (response.status === 200 || response.status === 201) {
+        const { email, token, id, requests, userName } = response.data;
+        console.log("===================2============")
+        const userData = {
+          // email: result.data.user.email,
+          name: result.data.user.name,
+          photo: result.data.user.photo,
+          uid: result.data.user.uid,
+          provider: 'google',
+          email,
+          token,
+          id,
+          requests,
+          userName        };
+          console.log("============JSON.stringify(userData)=======",JSON.parse(JSON.stringify(userData)))
+        await AsyncStorage.setItem('userData', JSON.stringify(userData));
+        const userDataString = await AsyncStorage.getItem('userData');
+        const userDatas = JSON.parse(userDataString);
+        console.log("LOADED: ", userDatas);
+        // dispatch(saveUserData(userData));
+        navigation.replace('MyBottomTab');
+      // }
+
       } catch (error) {
         console.error(error);
         Alert.alert('Error', error.response?.data?.message || 'Something went wrong');
@@ -118,8 +139,8 @@ const Login = ({ navigation }) => {
         provider: 'google',
       };
 
-      await AsyncStorage.setItem('userData', JSON.stringify(userData));
-      dispatch(saveUserData(userData));
+      // await AsyncStorage.setItem('userData', JSON.stringify(userData));
+      // dispatch(saveUserData(userData));
 
       navigation.replace('MyBottomTab');
     } catch (error) {
