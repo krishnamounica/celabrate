@@ -7,6 +7,7 @@ import { moderateScale } from '../styles/scaling';
 import colors from '../styles/colors';
 import CategoryList from '../screens/Categories/Categories';
 import RequestsScreen from '../screens/Search/RequestsScreen';
+import GiftOrderCard from '../screens/GiftOrderCard';
 
 const Tab = createBottomTabNavigator();
 
@@ -56,7 +57,7 @@ const MyBottomTab = () => {
       })}
     >
       <Tab.Screen name="Home" component={Home} />
-      <Tab.Screen name="Request" component={RequestsScreen} />
+      <Tab.Screen name="Request" component={GiftOrderCard} />
       <Tab.Screen name="Categories" component={CategoryList} />
       <Tab.Screen name="Cart" component={Cart} />
       <Tab.Screen name="Profile" component={Profile} />

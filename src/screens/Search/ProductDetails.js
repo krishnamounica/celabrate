@@ -17,16 +17,17 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import PaymentSuccessModal from "./PaymentSuccessModal";
 
 
 
 const screenWidth = Dimensions.get("window").width;
 
 const ProductDetails = ({ route }) => {
-  const { product } = route.params || {};
-  const [giftModalVisible, setGiftModalVisible] = useState(false);
-  const [showFullDescription, setShowFullDescription] = useState(false);
-  const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
+const { product } = route.params || {};
+const [giftModalVisible, setGiftModalVisible] = useState(false);
+const [showFullDescription, setShowFullDescription] = useState(false);
+const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
 
 
 const [formStep, setFormStep] = useState(1);
@@ -44,18 +45,23 @@ const [formData, setFormData] = useState({
   pincode: "",
 });
 const [showDatePicker, setShowDatePicker] = useState(false);
+const [paymentDetails, setPaymentDetails] = useState({
+  amount: 0,
+  paymentId: "",
+  paymentMode: "",
+  createdAt: "",
+});
 
 const handleInputChange = (key, value) => {
   setFormData({ ...formData, [key]: value });
 };
-// Call your backend to create order
+const [showModal, setShowModal] = useState(false);
 const openRazorpay = async () => {
   const amountInPaise = product.price * 100;
   const userDataString = await AsyncStorage.getItem('userData');
   const userData = JSON.parse(userDataString);
-  // console.log("LOADED: ", userData);
-  // console.log("====userData=====",userDataString)
   const userId = userData.id
+  console.log(userData.token,"=====token---------")
   try {
     const orderResponse = await fetch('https://easyshop-7095.onrender.com/api/v1/users/create-order', {
       method: 'POST',
@@ -67,9 +73,7 @@ const openRazorpay = async () => {
         currency: 'INR',
       }),
     });
-
     const orderData = await orderResponse.json();
-
     const options = {
       description: 'Purchase Product',
       currency: 'INR',
@@ -85,34 +89,43 @@ const openRazorpay = async () => {
       theme: { color: '#F37254' },
     };
 
-
     RazorpayCheckout.open(options)
-      .then((data) => {
-        return fetch('https://easyshop-7095.onrender.com/api/v1/users/save-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            razorpay_payment_id: data.razorpay_payment_id,
-            razorpay_order_id: data.razorpay_order_id,
-            razorpay_signature: data.razorpay_signature,
-            productId: product.id,
-            amount:amountInPaise/100,
-            userId:userId ,
-          }),
-        });
-      })
-      .then(response => response.json())
-      .then(result => {
-        console.log('Saved Payment Successfully:', result);
-      })
-      .catch(error => {
-        console.error('Error saving payment:', error);
+    .then((data) => {
+      return fetch('https://easyshop-7095.onrender.com/api/v1/users/save-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          razorpay_payment_id: data.razorpay_payment_id,
+          razorpay_order_id: data.razorpay_order_id,
+          razorpay_signature: data.razorpay_signature,
+          productId: product.id,
+          amount: amountInPaise / 100,
+          userId: userId,
+        }),
       });
+    })
+    .then(response => response.json())
+    .then(result => {
+      // Set the modal visibility to true after a successful payment
+      setShowModal(true);
+      
+      
+      setPaymentDetails({
+        amount: amountInPaise/ 100,
+        paymentId: result.paymentId,
+        paymentMode: 'Netbanking', 
+        createdAt: result.createdAt, 
+      });
+      
+    })
+    .catch(error => {
+      console.error('Error saving payment:', error);
+    });
+  
   } catch (err) {
     console.error('Error initiating Razorpay payment:', err);
   }
 };
-
   if (!product || Object.keys(product).length === 0) {
     return (
       <View style={styles.container}>
@@ -120,15 +133,21 @@ const openRazorpay = async () => {
       </View>
     );
   }
-
   const [mainImage, setMainImage] = useState(product.image || "https://via.placeholder.com/250");
   const [modalVisible, setModalVisible] = useState(false);
 
   const imageList = [mainImage, ...(product.images || [])].map((uri) => ({ uri }));
 
+  
+  const closeModal = () => {
+    setShowModal(false);  
+    navigation.navigate('MyBottomTab')
+  };
+  
   return (
     <ScrollView style={styles.container}>
       {/* Main Image - open viewer on press */}
+  
       <TouchableOpacity onPress={() => setModalVisible(true)}>
         <Image source={{ uri: mainImage }} style={styles.productImage} />
       </TouchableOpacity>
@@ -140,7 +159,14 @@ const openRazorpay = async () => {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       />
-
+    <PaymentSuccessModal
+  isOpen={showModal}
+  amount={paymentDetails.amount}
+  paymentId={paymentDetails.paymentId}
+  paymentMode={paymentDetails.paymentMode}
+  createdAt={paymentDetails.createdAt}
+  onClose={() => closeModal()}
+/>
       {/* Gallery Thumbnails */}
       {Array.isArray(product.images) && product.images.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.thumbnailContainer}>
@@ -151,13 +177,11 @@ const openRazorpay = async () => {
           ))}
         </ScrollView>
       )}
-
       <Text style={styles.productName}>{product.name}</Text>
       <Text style={styles.brand}>Brand: {product.brand}</Text>
       <Text style={styles.category}>
         Category: {product.category?.name || product.category || "Unknown"}
       </Text>
-
       <View style={styles.priceAndButtonsContainer}>
   <Text style={styles.price}>Price: ${product.price}</Text>
 
@@ -171,7 +195,6 @@ const openRazorpay = async () => {
     </TouchableOpacity>
   </View>
 </View>
-
       <Text style={styles.stock}>In Stock: {product.countInStock}</Text>
       <Text style={styles.rating}>Rating: {product.rating} ⭐</Text>
       <View style={{ marginTop: 10 }}>
@@ -188,7 +211,7 @@ const openRazorpay = async () => {
     {product.description || "No description available."}
   </Text>
 
-  {/* Toggle Button */}
+
   {isDescriptionTruncated && (
     <TouchableOpacity
       onPress={() => setShowFullDescription(!showFullDescription)}
@@ -392,6 +415,8 @@ const openRazorpay = async () => {
           <TouchableOpacity
             style={[styles.button, { flex: 1, marginLeft: 5 }]}
             onPress={async () => {
+              const userDataString = await AsyncStorage.getItem('userData');
+              const userData = JSON.parse(userDataString);
               try {
                 const payload = {
                   name: formData.name,
@@ -406,27 +431,27 @@ const openRazorpay = async () => {
                   state: formData.state,
                   pincode: formData.pincode,
                   productId: product._id,
-                  productName: product.name,    
-                  productPrice: product.price,   
+                  productName: product.name,
+                  productPrice: product.price,
                   status: "pending",
                   feedback: [],
                   payment: false,
                   sharable: false,
-                  userName: "suresh", 
+                  userName: userData.id,
                   paymentlink: "",
                   sharablelink: "",
                   totalAmount: product.price,
                   remainingAmount: product.price,
                   noOfPayments: 0,
                 };
-            
+              
+                console.log("=====token---------"," 'Authorization':", `Bearer ${userData.token}`)
                 const response = await axios.post('https://easyshop-7095.onrender.com/api/v1/giftrequests', payload, {
                   headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2Nzk3MWQ0MmY2NmFjZDJkYjk5OGU1MTYiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3NDU4MDgzMDMsImV4cCI6MTc0NTg5NDcwM30.kMhdnSdQ2-IFaldXj0n3WJobSP6uHmfWuRhheQqYDA0'
+                    'Token': `Bearer ${userData.token}`
                   }
                 });
-            
                 if (response.status === 200 || response.status === 201) {
                   alert("Gift request submitted successfully!");
                   console.log("API Response:", response.data);
@@ -440,7 +465,6 @@ const openRazorpay = async () => {
                 alert("Error submitting gift request!");
               }
             }}
-            
           >
             <Text style={styles.buttonText}>Submit</Text>
           </TouchableOpacity>
@@ -449,6 +473,9 @@ const openRazorpay = async () => {
     </View>
   </View>
 </Modal>
+
+
+
 </ScrollView>
   );
 };

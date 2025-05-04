@@ -18,7 +18,7 @@ const Categories = () => {
       .map((category, index) => ({
         id: String(index + 1),
         name: category,
-        icon: require('../../assets/burger.jpg'), // Static image for now
+        // icon: require('../../assets/burger.jpg'), // Static image for now
       }))
     : [];
 

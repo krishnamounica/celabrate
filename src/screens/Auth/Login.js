@@ -31,7 +31,6 @@ const Login = ({ navigation }) => {
     };
 
     checkUserData();
-
     // Google Sign-In configuration
     GoogleSignin.configure({
       webClientId: '1062172501798-ho34oecubhlu6sp9l8mjsehd0rbnqllt.apps.googleusercontent.com',
@@ -55,7 +54,7 @@ const Login = ({ navigation }) => {
       if (response.status === 200 || response.status === 201) {
         Alert.alert('Success', 'Logged in successfully!');
         await AsyncStorage.setItem('userData', JSON.stringify(response.data));
-        dispatch(saveUserData(response.data));
+        // dispatch(saveUserData(response.data));
         navigation.replace('MyBottomTab');
       }
     } catch (error) {
@@ -65,36 +64,28 @@ const Login = ({ navigation }) => {
       setLoading(false);
     }
   };
-
   const handleGoogleSignIn = async () => {
     if (signingIn) return;
-
     try {
       setSigningIn(true);
-
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-
       const result = await GoogleSignin.signIn();
       console.log('Google Sign-In result:', result);
       const { email, name, photo, id } = result.data.user;
-    
 
-let rr = {
+      let rr = {
   email,
   name,
   token: result.data.idToken
 };
-
       const url = `https://easyshop-7095.onrender.com/api/v1/users/guser`;
       try {
-        console.log("===================1============")
         const response = await axios.post(url, rr, {
           headers: { 'Content-Type': 'application/json' },
         });
-      // console.log("==============",response.data,"==========")
+      console.log("==============",response.data,"==========")
       // if (response.status === 200 || response.status === 201) {
         const { email, token, id, requests, userName } = response.data;
-        console.log("===================2============")
         const userData = {
           // email: result.data.user.email,
           name: result.data.user.name,
@@ -106,31 +97,25 @@ let rr = {
           id,
           requests,
           userName        };
-          console.log("============JSON.stringify(userData)=======",JSON.parse(JSON.stringify(userData)))
         await AsyncStorage.setItem('userData', JSON.stringify(userData));
         const userDataString = await AsyncStorage.getItem('userData');
         const userDatas = JSON.parse(userDataString);
-        console.log("LOADED: ", userDatas);
         // dispatch(saveUserData(userData));
         navigation.replace('MyBottomTab');
       // }
-
       } catch (error) {
         console.error(error);
         Alert.alert('Error', error.response?.data?.message || 'Something went wrong');
       } finally {
         setLoading(false);
       }
-
       const idToken = result?.idToken || result?.data?.idToken;
 
       if (!idToken) {
         throw new Error('Google Sign-In failed: idToken is missing');
       }
-
       const googleCredential = firebase.auth.GoogleAuthProvider.credential(idToken);
       const userCredential = await auth().signInWithCredential(googleCredential);
-
       const userData = {
         email: userCredential.user.email,
         name: userCredential.user.displayName,
@@ -138,10 +123,8 @@ let rr = {
         uid: userCredential.user.uid,
         provider: 'google',
       };
-
       // await AsyncStorage.setItem('userData', JSON.stringify(userData));
       // dispatch(saveUserData(userData));
-
       navigation.replace('MyBottomTab');
     } catch (error) {
       console.error('Google Sign-In Error:', error);
@@ -158,7 +141,6 @@ let rr = {
       </View>
     );
   }
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.formWrapper}>
@@ -178,9 +160,7 @@ let rr = {
           onChangeText={(text) => handleChange('password', text)}
           secureTextEntry
         />
-
         <Button title="Login with Email" onPress={handleLogin} />
-
         <View style={{ marginVertical: 10 }}>
           <Button
             title={signingIn ? 'Signing in...' : 'Sign in with Google'}
@@ -188,11 +168,9 @@ let rr = {
             disabled={signingIn}
           />
         </View>
-
         <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
           <Text style={styles.registerText}>Don't have an account? Register</Text>
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => navigation.navigate('ProductForm')}>
           <Text style={styles.registerText}>Add product</Text>
         </TouchableOpacity>
@@ -200,7 +178,6 @@ let rr = {
     </ScrollView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
