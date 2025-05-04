@@ -17,7 +17,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import PaymentSuccessModal from "./PaymentSuccessModal";
+  import { useNavigation } from "@react-navigation/native";
+  import PaymentSuccessModal from "./PaymentSuccessModal";
 
 
 
@@ -28,7 +29,7 @@ const { product } = route.params || {};
 const [giftModalVisible, setGiftModalVisible] = useState(false);
 const [showFullDescription, setShowFullDescription] = useState(false);
 const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
-
+ const navigation = useNavigation();
 
 const [formStep, setFormStep] = useState(1);
 const [formData, setFormData] = useState({
@@ -61,7 +62,7 @@ const openRazorpay = async () => {
   const userDataString = await AsyncStorage.getItem('userData');
   const userData = JSON.parse(userDataString);
   const userId = userData.id
-  console.log(userData.token,"=====token---------")
+
   try {
     const orderResponse = await fetch('https://easyshop-7095.onrender.com/api/v1/users/create-order', {
       method: 'POST',
@@ -457,6 +458,7 @@ const openRazorpay = async () => {
                   console.log("API Response:", response.data);
                   setGiftModalVisible(false);
                   setFormStep(1);
+                  navigation.navigate('Request');
                 } else {
                   alert("Failed to submit gift request. Try again.");
                 }

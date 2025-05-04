@@ -7,7 +7,6 @@ import Header from "../Home/Header";
 const CategoryList = () => {
   const { items: products } = useSelector((state) => state.products);
   const navigation = useNavigation();
-
   // Extract unique categories safely
   const categories = Array.from(
     new Map(
