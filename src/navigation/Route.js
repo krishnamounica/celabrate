@@ -5,9 +5,9 @@ import MainStack from './MainStack';
 
 const Route = () => {
   return (
-    <NavigationContainer>
+    
       <MainStack />
-    </NavigationContainer>
+  
   );
 };
 

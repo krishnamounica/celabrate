@@ -8,6 +8,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { Modal, TextInput } from 'react-native';
 import PaymentSuccessModal from './Search/PaymentSuccessModal';
+import { useNavigation } from "@react-navigation/native";
+
 
 const GiftOrderCard = () => {
   const [orders, setOrders] = useState(null);
@@ -28,7 +30,7 @@ const [showModal, setShowModal] = useState(false);
     setModalVisible(true);
 
   };
-
+   const navigation = useNavigation();
   const initiateRazorpay = async (id) => {
     console.log(id,"=========",selectedOrder)
     if (
@@ -146,6 +148,7 @@ const [showModal, setShowModal] = useState(false);
   };
 
   const fetchOrders = async () => {
+    console.log("==============gifts========")
     try {
       const userDataString = await AsyncStorage.getItem('userData');
       const userData = JSON.parse(userDataString);
@@ -233,6 +236,13 @@ const [showModal, setShowModal] = useState(false);
               <Icon name="cash-refund" size={18} color="#fff" />
               <Text style={styles.buttonText}>Pay</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+    style={styles.button}
+    onPress={() => navigation.navigate('GiftDetails', { id: order._id })}
+  >
+    <Icon name="information-outline" size={18} color="#fff" />
+    <Text style={styles.buttonText}>Details</Text>
+  </TouchableOpacity>
           </View>
           {!order.sharable && (
             <Text style={styles.disabledNote}>Sharing is not allowed for this order.</Text>

@@ -9,6 +9,7 @@ import Registration from '../screens/Auth/Registration';
 import Login from '../screens/Auth/Login';
 import AuthLoading from '../screens/Auth/AuthLoading';
 import GiftOrderCard from '../screens/GiftOrderCard';
+import GiftDetailsScreen from '../screens/GiftDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,6 +17,7 @@ const MainStack = () => {
   return (
     <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName="AuthLoading">
       <Stack.Screen name="AuthLoading" component={AuthLoading} />
+      <Stack.Screen name="GiftDetails" component={GiftDetailsScreen} />
     <Stack.Screen name="Login" component={Login} />
     <Stack.Screen name="Registration" component={Registration} />
     <Stack.Screen name="Request" component={GiftOrderCard} />
@@ -23,6 +25,7 @@ const MainStack = () => {
     <Stack.Screen name="OrderHistory" component={OrderHistory} />
     <Stack.Screen name="ProductsScreen" component={ProductsScreen} />
     <Stack.Screen name="ProductDetails" component={ProductDetails} />
+   
   </Stack.Navigator>
   );
 };

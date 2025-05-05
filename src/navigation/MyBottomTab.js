@@ -8,6 +8,7 @@ import colors from '../styles/colors';
 import CategoryList from '../screens/Categories/Categories';
 import RequestsScreen from '../screens/Search/RequestsScreen';
 import GiftOrderCard from '../screens/GiftOrderCard';
+import GiftDetailsScreen from '../screens/GiftDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 
