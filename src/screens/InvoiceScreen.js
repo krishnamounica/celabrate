@@ -3,9 +3,11 @@ import { View, Text, Button, StyleSheet, Alert } from 'react-native';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
 const InvoiceScreen = ({ route }) => {
   const { paymentDetails, product, billingAddress } = route.params;
+  const navigation = useNavigation();
 
   const [invoiceNumber, setInvoiceNumber] = useState(null);
 
@@ -105,15 +107,30 @@ const InvoiceScreen = ({ route }) => {
       <Text>Base: ₹{baseAmount.toFixed(2)} | GST: ₹{gstAmount.toFixed(2)}</Text>
       <Text>Mode: {paymentDetails.paymentMode}</Text>
       <Text>Date: {new Date(paymentDetails.createdAt).toLocaleString()}</Text>
-      <Button title="Download / Share Invoice" onPress={generatePDF} />
+
+      <View style={styles.buttonWrapper}>
+        <Button title="Download / Share Invoice" onPress={generatePDF} />
+      </View>
+
+      <View style={styles.buttonWrapper}>
+        <Button title="Go to Home" color="#28a745" onPress={() => navigation.navigate('MyBottomTab')} />
+      </View>
     </View>
   );
 };
 
-
 export default InvoiceScreen;
 
 const styles = StyleSheet.create({
-  container: { padding: 20 },
-  heading: { fontSize: 20, fontWeight: 'bold', marginBottom: 15 },
+  container: {
+    padding: 20,
+  },
+  heading: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  buttonWrapper: {
+    marginTop: 20,
+  },
 });

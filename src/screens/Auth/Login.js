@@ -93,7 +93,7 @@ const Login = ({ navigation }) => {
           uid: result.data.user.uid,
           provider: 'google',
           email,
-          token,
+          token:response.data.token,
           id,
           requests,
           userName        };

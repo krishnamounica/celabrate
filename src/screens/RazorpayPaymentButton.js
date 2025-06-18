@@ -78,6 +78,7 @@ const RazorpayPaymentButton = ({ route }) => {
                 tax: gst,
                 deliveryCharges: deliveryCharges,
                 transactionCharges: txnCharges,
+                address:billingAddress
               }),
             }
           );
