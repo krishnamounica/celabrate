@@ -1,11 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { 
-  View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView 
+  View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ScrollView, 
+  Modal,
+  TextInput
 } from "react-native";
 import { useSelector } from "react-redux";
+import RNPickerSelect from "react-native-picker-select";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import RazorpayCheckout from 'react-native-razorpay';
+import axios from "axios";
 
 const ProductsScreen = ({ route }) => {
   const { categoryId } = route.params || {}; // safe destructure
+
   console.log(categoryId)
   const { items: products } = useSelector((state) => state.products);
 
@@ -24,11 +33,112 @@ const ProductsScreen = ({ route }) => {
     </ScrollView>
   );
 };
-
 // Individual Product Card Component
 const ProductCard = ({ product }) => {
   const [mainImage, setMainImage] = useState(product?.image);
+const [userData, setUserData] = useState(null);
+const [giftModalVisible, setGiftModalVisible] = useState(false);
+const [formStep, setFormStep] = useState(1);
+const handleInputChange = (key, value) => {
+  setFormData({ ...formData, [key]: value });
+};
+ useEffect(() => {
+    AsyncStorage.getItem("userData")
+      .then((str) => {
+        if (str) setUserData(JSON.parse(str));
+      })
+      .catch(console.error);
+  }, []);
+const navigation = useNavigation();
+const [formData, setFormData] = useState({
+  name: "",
+  phone: "",
+  relation: "",
+  occasion: "",
+  date: "",
+  flatNo: "",
+  apartment: "",
+  landmark: "",
+  district: "",
+  state: "",
+  pincode: "",
+});
+const [showDatePicker, setShowDatePicker] = useState(false);
+const [showModal, setShowModal] = useState(false);
+const [paymentDetails, setPaymentDetails] = useState({
+  amount: 0,
+  paymentId: "",
+  paymentMode: "",
+  createdAt: "",
+});
+// const openRazorpay = async () => {
+//   const amountInPaise = product.price * 100;
+//   const userDataString = await AsyncStorage.getItem('userData');
+//   const userData = JSON.parse(userDataString);
+//   const userId = userData.id
 
+//   try {
+//     const orderResponse = await fetch('https://easyshop-7095.onrender.com/api/v1/users/create-order', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({
+//         amount: amountInPaise,
+//         currency: 'INR',
+//       }),
+//     });
+//     const orderData = await orderResponse.json();
+//     const options = {
+//       description: 'Purchase Product',
+//       currency: 'INR',
+//       key: 'rzp_test_Zr4AoaaUCDwWjy',
+//           amount: amountInPaise / 100,
+
+//       name: 'Wish and Surprise',
+//       order_id: orderData.orderId, // Ensure this matches the backend response
+//       prefill: {
+//         email: 'test@example.com',
+//         contact: '9876543210',
+//         name: 'Test User',
+//       },
+//       theme: { color: '#F37254' },
+//     };
+
+//     RazorpayCheckout.open(options)
+//     .then((data) => {
+//       return fetch('https://easyshop-7095.onrender.com/api/v1/users/save-payment', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//           razorpay_payment_id: data.razorpay_payment_id,
+//           razorpay_order_id: data.razorpay_order_id,
+//           razorpay_signature: data.razorpay_signature,
+//           productId: product.id,
+//           amount: amountInPaise / 100,
+//           userId: userId,
+//         }),
+//       });
+//     })
+//     .then(response => response.json())
+//     .then(result => {
+//       // Set the modal visibility to true after a successful payment
+//       setShowModal(true);
+//       setPaymentDetails({
+//         amount: amountInPaise/ 100,
+//         paymentId: result.paymentId,
+//         paymentMode: 'Netbanking', 
+//         createdAt: result.createdAt, 
+//       });
+//     })
+//     .catch(error => {
+//       console.error('Error saving payment:', error);
+//     });
+  
+//   } catch (err) {
+//     console.error('Error initiating Razorpay payment:', err);
+//   }
+// };
   return (
     <View style={styles.productCard}>
       {/* Main Image */}
@@ -64,12 +174,269 @@ const ProductCard = ({ product }) => {
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.sendGiftButton}>
+        <TouchableOpacity
+          style={styles.sendGiftButton}
+          onPress={() => setGiftModalVisible(true)}
+        >
           <Text style={styles.buttonText}>Send Gift</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.buyNowButton}>
+        {/* <TouchableOpacity style={styles.buyNowButton} onPress={openRazorpay}>
           <Text style={styles.buttonText}>Buy Now</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        <TouchableOpacity
+                    style={styles.buyNowButton}
+                    onPress={() => navigation.navigate('BillingAddress', { product })}
+                  >
+                    <Text style={styles.buttonText}>Buy Now</Text>
+                  </TouchableOpacity>
+         {/* Modal */}
+      <Modal
+  animationType="slide"
+  transparent={true}
+  visible={giftModalVisible}
+  onRequestClose={() => {
+    setGiftModalVisible(false);
+    setFormStep(1);
+  }}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      {/* Progress Bar */}
+      <View style={styles.progressContainer}>
+        {[1, 2, 3, 4].map((s) => (
+          <View
+            key={s}
+            style={[
+              styles.progressStep,
+              { backgroundColor: formStep >= s ? "#007bff" : "#ccc" },
+            ]}
+          />
+        ))}
+      </View>
+
+      {/* Step Descriptions */}
+      <Text style={styles.modalTitle}>Step {formStep}</Text>
+      {formStep === 1 && <Text style={styles.modalText}>Enter recipient's basic contact information.</Text>}
+      {formStep === 2 && <Text style={styles.modalText}>Specify your relationship and the occasion.</Text>}
+      {formStep === 3 && <Text style={styles.modalText}>Provide the building and location details.</Text>}
+      {formStep === 4 && <Text style={styles.modalText}>Finish with district, state, and pincode.</Text>}
+
+      {/* Step 1 */}
+      {formStep === 1 && (
+        <>
+          <Text style={styles.label}>Name</Text>
+          <TextInput
+            placeholder="Enter recipient's name"
+            style={styles.input}
+            value={formData.name}
+            onChangeText={(text) => handleInputChange("name", text)}
+          />
+          <Text style={styles.label}>Phone</Text>
+          <TextInput
+            placeholder="Enter phone number"
+            keyboardType="phone-pad"
+            style={styles.input}
+            value={formData.phone}
+            onChangeText={(text) => handleInputChange("phone", text)}
+          />
+        </>
+      )}
+
+      {/* Step 2 */}
+      {formStep === 2 && (
+  <>
+    <Text style={styles.label}>Relation</Text>
+    <RNPickerSelect
+      onValueChange={(value) => handleInputChange("relation", value)}
+      value={formData.relation}
+      items={[
+        { label: "Friend", value: "Friend" },
+        { label: "Brother", value: "Brother" },
+        { label: "Sister", value: "Sister" },
+        { label: "Mother", value: "Mother" },
+        { label: "Father", value: "Father" },
+      ]}
+      placeholder={{ label: "Select a relation", value: null }}
+      style={pickerSelectStyles}
+    />
+
+    <Text style={styles.label}>Occasion</Text>
+    <RNPickerSelect
+      onValueChange={(value) => handleInputChange("occasion", value)}
+      value={formData.occasion}
+      items={[
+        { label: "Birthday", value: "Birthday" },
+        { label: "Anniversary", value: "Anniversary" },
+        { label: "Wedding", value: "Wedding" },
+        { label: "Graduation", value: "Graduation" },
+        { label: "Festival", value: "Festival" },
+      ]}
+      placeholder={{ label: "Select an occasion", value: null }}
+      style={pickerSelectStyles}
+    />
+
+    <Text style={styles.label}>Date</Text>
+    <TouchableOpacity
+      style={[styles.input, { justifyContent: "center" }]}
+      onPress={() => setShowDatePicker(true)}
+    >
+      <Text>{formData.date || "Select date"}</Text>
+    </TouchableOpacity>
+    {showDatePicker && (
+      <DateTimePicker
+        mode="date"
+        display="default"
+        value={new Date()}
+        onChange={(event, selectedDate) => {
+          setShowDatePicker(false);
+          if (selectedDate) {
+            const year = selectedDate.getFullYear();
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`; // yyyy-mm-dd
+            handleInputChange("date", formattedDate);
+          }
+        }}
+      />
+    )}
+  </>
+)}
+      {/* Step 3 */}
+      {formStep === 3 && (
+        <>
+          <Text style={styles.label}>Flat No.</Text>
+          <TextInput
+            placeholder="Enter flat number"
+            style={styles.input}
+            value={formData.flatNo}
+            onChangeText={(text) => handleInputChange("flatNo", text)}
+          />
+          <Text style={styles.label}>Apartment</Text>
+          <TextInput
+            placeholder="Apartment name"
+            style={styles.input}
+            value={formData.apartment}
+            onChangeText={(text) => handleInputChange("apartment", text)}
+          />
+          <Text style={styles.label}>Landmark</Text>
+          <TextInput
+            placeholder="Nearby landmark"
+            style={styles.input}
+            value={formData.landmark}
+            onChangeText={(text) => handleInputChange("landmark", text)}
+          />
+        </>
+      )}
+
+      {/* Step 4 */}
+      {formStep === 4 && (
+        <>
+          <Text style={styles.label}>District</Text>
+          <TextInput
+            placeholder="Enter district"
+            style={styles.input}
+            value={formData.district}
+            onChangeText={(text) => handleInputChange("district", text)}
+          />
+          <Text style={styles.label}>State</Text>
+          <TextInput
+            placeholder="Enter state"
+            style={styles.input}
+            value={formData.state}
+            onChangeText={(text) => handleInputChange("state", text)}
+          />
+          <Text style={styles.label}>Pincode</Text>
+          <TextInput
+            placeholder="Enter pincode"
+            keyboardType="numeric"
+            style={styles.input}
+            value={formData.pincode}
+            onChangeText={(text) => handleInputChange("pincode", text)}
+          />
+        </>
+      )}
+
+      {/* Navigation Buttons */}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%" }}>
+        {formStep > 1 && (
+          <TouchableOpacity
+            style={[styles.button, { flex: 1, marginRight: 5 }]}
+            onPress={() => setFormStep(formStep - 1)}
+          >
+            <Text style={styles.buttonText}>Back</Text>
+          </TouchableOpacity>
+        )}
+        {formStep < 4 ? (
+          <TouchableOpacity
+            style={[styles.button, { flex: 1, marginLeft: formStep > 1 ? 5 : 0 }]}
+            onPress={() => setFormStep(formStep + 1)}
+          >
+            <Text style={styles.buttonText}>Next</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.button, { flex: 1, marginLeft: 5 }]}
+            onPress={async () => {
+              const userDataString = await AsyncStorage.getItem('userData');
+              const userData = JSON.parse(userDataString);
+              try {
+                const payload = {
+                  name: formData.name,
+                  phone: formData.phone,
+                  relation: formData.relation,
+                  occasion: formData.occasion,
+                  date: formData.date,
+                  flatNumber: formData.flatNo,
+                  building: formData.apartment,
+                  landmark: formData.landmark,
+                  district: formData.district,
+                  state: formData.state,
+                  pincode: formData.pincode,
+                  productId: product._id,
+                  productName: product.name,
+                  productPrice: product.price,
+                  status: "pending",
+                  feedback: [],
+                  payment: false,
+                  sharable: false,
+                  userName: userData.id,
+                  paymentlink: "",
+                  sharablelink: "",
+                  totalAmount: product.price,
+                  remainingAmount: product.price,
+                  noOfPayments: 0,
+                };
+              
+                console.log("=====token---------"," 'Authorization':", `Bearer ${userData.token}`)
+                const response = await axios.post('https://easyshop-7095.onrender.com/api/v1/giftrequests', payload, {
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${userData.token}`
+  }
+});
+
+                if (response.status === 200 || response.status === 201) {
+                  alert("Gift request submitted successfully!");
+                  console.log("API Response:", response.data);
+                  setGiftModalVisible(false);
+                  setFormStep(1);
+                  navigation.navigate('Request');
+                } else {
+                  alert("Failed to submit gift request. Try again.");
+                }
+              } catch (error) {
+                console.error("Error submitting gift request:", error);
+                alert("Error submitting gift request!");
+              }
+            }}
+          >
+            <Text style={styles.buttonText}>Submit</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  </View>
+</Modal>
       </View>
     </View>
   );
@@ -78,107 +445,218 @@ const ProductCard = ({ product }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-    backgroundColor: "#fff",
+    padding: 16,
+    backgroundColor: "#ffffff",
   },
   productCard: {
-    backgroundColor: "#f9f9f9",
-    borderRadius: 12,
-    padding: 15,
-    marginVertical: 10,
-    elevation: 3,
-    shadowColor: "#000",
+    backgroundColor: "#f4f6f8",
+    borderRadius: 16,
+    padding: 16,
+    marginVertical: 12,
+    elevation: 4,
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   productImage: {
     width: "100%",
     height: 250,
-    borderRadius: 10,
+    borderRadius: 12,
     resizeMode: "cover",
   },
   thumbnailContainer: {
     flexDirection: "row",
-    marginTop: 10,
+    marginTop: 12,
   },
   thumbnail: {
     width: 60,
     height: 60,
     borderRadius: 8,
-    marginHorizontal: 5,
+    marginHorizontal: 4,
     borderWidth: 2,
-    borderColor: "#ddd",
+    borderColor: "#ccc",
   },
   detailsContainer: {
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   productName: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#333333",
   },
   brandText: {
     fontSize: 16,
-    color: "#666",
+    color: "#777",
+    marginTop: 4,
   },
   categoryText: {
     fontSize: 16,
-    color: "#666",
+    color: "#777",
+    marginTop: 2,
   },
   priceText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#d9534f",
-    marginTop: 5,
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#e53935",
+    marginTop: 6,
   },
   stockText: {
     fontSize: 16,
-    color: "#5cb85c",
-    marginTop: 5,
+    color: "#4caf50",
+    marginTop: 4,
   },
   ratingText: {
     fontSize: 16,
-    color: "#f0ad4e",
-    marginTop: 5,
+    color: "#ffa726",
+    marginTop: 4,
   },
   description: {
-    fontSize: 14,
-    color: "#555",
-    marginTop: 10,
+    fontSize: 15,
+    color: "#555555",
+    marginTop: 12,
+    lineHeight: 22,
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 15,
+    marginTop: 18,
   },
   sendGiftButton: {
     flex: 1,
-    backgroundColor: "#ff9800",
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: "#ffb74d",
+    padding: 14,
+    borderRadius: 10,
     alignItems: "center",
-    marginRight: 5,
+    marginRight: 8,
   },
   buyNowButton: {
     flex: 1,
-    backgroundColor: "#2196f3",
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: "#42a5f5",
+    padding: 14,
+    borderRadius: 10,
     alignItems: "center",
-    marginLeft: 5,
+    marginLeft: 8,
+  },
+  button: {
+    backgroundColor: "#1976d2",
+    padding: 14,
+    borderRadius: 8,
+    marginTop: 16,
+    alignItems: "center",
   },
   buttonText: {
-    color: "#fff",
+    color: "#ffffff",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "600",
   },
   emptyText: {
     textAlign: "center",
-    marginTop: 20,
+    marginTop: 30,
     fontSize: 16,
-    color: "#999",
+    color: "#aaa",
   },
+
+  /** ✅ MODAL STYLES UPDATED **/
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+  },
+  modalContent: {
+    width: "90%",
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    padding: 24,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  closeButton: {
+    marginTop: 20,
+    backgroundColor: "#2196f3",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+  },
+  
+
+  // Label above each input
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#444',
+    marginBottom: 4,
+  },
+
+  // Standard text input style
+  input: {
+    width: '100%',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#f5f5f5',
+    fontSize: 16,
+    color: '#333',
+    // iOS shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    // Android elevation
+    elevation: 1,
+  },
+
+  // Focused state override (if you want to change border color on focus)
+  inputFocused: {
+    borderColor: '#1976d2',
+    backgroundColor: '#ffffff',
+  },
+
+  // Error state override
+  inputError: {
+    borderColor: '#e53935',
+  },
+
+  // Placeholder text style (only for styling TextInput placeholder in RN)
+  placeholderText: {
+    color: '#888',
+    fontStyle: 'italic',
+  },
+
 });
+
+const pickerSelectStyles = {
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: "#bbb",
+    borderRadius: 8,
+    color: "#333",
+    paddingRight: 30,
+    backgroundColor: "#f0f0f0",
+    marginBottom: 12,
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: "#bbb",
+    borderRadius: 8,
+    color: "#333",
+    paddingRight: 30,
+    backgroundColor: "#f0f0f0",
+    marginBottom: 12,
+  },
+};
 
 export default ProductsScreen;

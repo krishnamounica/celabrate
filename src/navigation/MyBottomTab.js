@@ -60,7 +60,7 @@ const MyBottomTab = () => {
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="Request" component={GiftOrderCard} />
       <Tab.Screen name="Categories" component={CategoryList} />
-      <Tab.Screen name="Cart" component={Cart} />
+      {/* <Tab.Screen name="Cart" component={Cart} /> */}
       <Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );

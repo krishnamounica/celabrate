@@ -34,7 +34,7 @@ const Home = () => {
         <View style={styles.section}>
           <ProductListScreen />
         </View>
-        <View style={styles.section}>
+        <View style={styles.lastsection}>
           <CelebrationsCalendar />
         </View>
 
@@ -68,4 +68,11 @@ const styles = StyleSheet.create({
     flex:1
     // marginTop: 10, // Pushes Best Offers down to ensure visibility
   },
+  lastsection: {
+    flex:1,
+    // backgroundColor: 'red',
+    marginBottom:40,
+    justifyContent:"center",
+    fontStyle:'bold'
+  }
 });

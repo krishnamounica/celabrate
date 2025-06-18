@@ -12,8 +12,9 @@ import imagePath from '../../constants/imagePath';
 import {moderateScale, scale, verticalScale} from '../../styles/scaling';
 import colors from '../../styles/colors';
 import ImagePicker from 'react-native-image-crop-picker';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { all } from 'axios';
 
 
 const Profile = ({navigation}) => {
@@ -52,6 +53,32 @@ const Profile = ({navigation}) => {
   ];
 
   const [profileImage,setProfileImage] = useState()
+
+const [userData, setUserData] = useState({ name: '', phone: '', email: '' });
+useEffect(() => {
+  const fetchUserData = async () => {
+    try {
+      const storedUserData = await AsyncStorage.getItem('userData');
+
+      if (storedUserData) {
+        const parsedData = JSON.parse(storedUserData);
+        setUserData({
+          name: parsedData.userName || parsedData.name || '',
+          phone: parsedData.phone || '',
+          email: parsedData.email || parsedData.user || '', 
+        });
+        console.log(parsedData, "==== Parsed userData ====");
+      }
+    } catch (error) {
+      console.log('Error fetching user data:', error);
+    }
+  };
+
+  fetchUserData();
+}, []);
+
+
+
 
   const ImageImportFromGallery = () => {
     ImagePicker.openPicker({
@@ -102,11 +129,12 @@ const Profile = ({navigation}) => {
               </View>
             </View>
           </View>
-          <View>
-            <Text style={styles.userNameText}>{'Krishna'}</Text>
-            <Text style={styles.userNumberText}>{'9701570870'}</Text>
-            <Text style={styles.userNumberText}>{'krishna@gmail.com'}</Text>
-          </View>
+         <View>
+  <Text style={styles.userNameText}>{userData.name}</Text> {/* Fixed */}
+  <Text style={styles.userNumberText}>{userData.phone}</Text>
+  <Text style={styles.userNumberText}>{userData.email}</Text> {/* Fixed */}
+</View>
+
           <FlatList
             data={Data}
             contentContainerStyle={{

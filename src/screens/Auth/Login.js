@@ -149,6 +149,7 @@ const Login = ({ navigation }) => {
         <TextInput
           style={styles.input}
           placeholder="Email"
+           placeholderTextColor="gray"
           value={formData.email}
           onChangeText={(text) => handleChange('email', text)}
           keyboardType="email-address"
@@ -156,6 +157,7 @@ const Login = ({ navigation }) => {
         <TextInput
           style={styles.input}
           placeholder="Password"
+           placeholderTextColor="gray"
           value={formData.password}
           onChangeText={(text) => handleChange('password', text)}
           secureTextEntry
@@ -168,12 +170,12 @@ const Login = ({ navigation }) => {
             disabled={signingIn}
           />
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Registration')}>
           <Text style={styles.registerText}>Don't have an account? Register</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('ProductForm')}>
+        {/* <TouchableOpacity onPress={() => navigation.navigate('ProductForm')}>
           <Text style={styles.registerText}>Add product</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </ScrollView>
   );
@@ -184,8 +186,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f5f5f5'
   },
+  
   formWrapper: {
     width: '100%',
     maxWidth: 400,
@@ -214,6 +217,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#f9f9f9',
   },
+
   registerText: {
     marginTop: 15,
     textAlign: 'center',

@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "1062172501798-uhe1cs1ln4rekuqu2n08i65aibfi752u.apps.googleusercontent.com",
+          "client_id": "1062172501798-ghdbg6lrr49pipev4ta17b16k3853s5c.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.Wishandsurprise",
-            "certificate_hash": "93df2eb0b656cbee118ac3be843ebdc25bc73cf3"
+            "certificate_hash": "230cca2d0e904fef57feff944a43ba1a7a3ad669"
           }
         },
         {

@@ -2,6 +2,7 @@ import axios from 'axios';
 import React ,{useState,useEffect} from 'react';
 import { View, Text, Image, FlatList, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { useNavigation } from "@react-navigation/native";
+import { faBold } from '@fortawesome/free-solid-svg-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -39,7 +40,7 @@ const CelebrationsCalendar = () => {
     };
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <View style={styles.dateContainer}>
+      <View>
         <Text style={styles.dateText}>{item.date}</Text>
       </View>
         <TouchableOpacity 
@@ -78,6 +79,8 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 12,
+    display:'flex',
+    justifyContent:"center"
   },
   list: {
     paddingLeft: 2,
@@ -103,13 +106,14 @@ const styles = StyleSheet.create({
   },
   image: {
     width: CARD_WIDTH,
-    height: 140,
+    height: 200,
   },
   title: {
-    fontSize: 13,
+    fontSize: 17,
     textAlign: 'center',
     padding: 10,
     color: '#333',
+   fontWeight:'700',
   },
 });
 

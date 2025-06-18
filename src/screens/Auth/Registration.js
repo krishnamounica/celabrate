@@ -96,20 +96,23 @@ const Registration = ({ navigation }) => {
         <TextInput
           style={styles.input}
           placeholder="Name"
+           placeholderTextColor="gray"
           value={formData.name}
           onChangeText={(text) => handleChange('name', text)}
         />
         <TextInput
           style={styles.input}
           placeholder="Email"
+           placeholderTextColor="gray"
           value={formData.email}
-          onChangeText={(text) => handleChange('email', text)}
+          onChangeText={(text) => handleChange('email', text)}cv
           keyboardType="email-address"
         />
         <TextInput
           style={styles.input}
           placeholder="Password"
-          value={formData.password}
+           placeholderTextColor="gray"
+           value={formData.password}
           onChangeText={(text) => handleChange('password', text)}
           secureTextEntry
         />
@@ -167,6 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     fontSize: 16,
     backgroundColor: '#f9f9f9',
+    color:'black',
   },
   registerText: {
     marginTop: 15,
