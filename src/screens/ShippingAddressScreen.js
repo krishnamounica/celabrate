@@ -31,9 +31,10 @@ const ShippingAddressScreen = () => {
           },
         }
       );
-
-      const payments = Array.isArray(response.data) ? response.data : [];
-      setBillingData(payments.map(p => p.address).filter(Boolean));
+     const payments = Array.isArray(response.data) ? response.data : [];
+const allAddresses = payments.map(p => p.address).filter(Boolean);
+const uniqueAddresses = removeDuplicateAddresses(allAddresses);
+setBillingData(uniqueAddresses);
     } catch (error) {
       console.error('Failed to fetch billing addresses:', error.response?.data || error.message);
       setBillingData([]);
@@ -41,7 +42,15 @@ const ShippingAddressScreen = () => {
       setLoading(false);
     }
   };
-
+const removeDuplicateAddresses = (addresses) => {
+  const seen = new Set();
+  return addresses.filter((addr) => {
+    const key = `${addr.fullName}|${addr.street}|${addr.city}|${addr.state}|${addr.postalCode}|${addr.country}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
   useEffect(() => {
     fetchBillingAddresses();
   }, []);
@@ -53,7 +62,7 @@ const ShippingAddressScreen = () => {
       <Text style={styles.cardText}>Street: {item.street}</Text>
       <Text style={styles.cardText}>City: {item.city}</Text>
       <Text style={styles.cardText}>State: {item.state}</Text>
-      <Text style={styles.cardText}>Pincode: {item.pinCode}</Text>
+      <Text style={styles.cardText}>Pincode: {item.postalCode}</Text>
     </View>
   );
 

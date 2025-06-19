@@ -14,8 +14,6 @@ import colors from '../../styles/colors';
 import ImagePicker from 'react-native-image-crop-picker';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { all } from 'axios';
-
 
 const Profile = ({navigation}) => {
   const Data = [
@@ -31,57 +29,34 @@ const Profile = ({navigation}) => {
       label: 'Shipping Address',
       next: imagePath.next,
     },
-    // {
-    //   id: 3,
-    //   iconeLeft: imagePath.compliant,
-    //   label: 'Create Request',
-    //   next: imagePath.next,
-    // },
-    // {
-    //   id: 4,
-    //   iconeLeft: imagePath.quote_request,
-    //   label: 'Privacy Policy',
-    //   next: imagePath.next,
-    // },
-    // {
-    //   id: 5,
-    //   iconeLeft: imagePath.settings,
-    //   label: 'Settings',
-    //   next: imagePath.next,
-    // },
     {id: 6, iconeLeft: imagePath.out, label: 'Log out', next: imagePath.next},
   ];
 
-  const [profileImage,setProfileImage] = useState()
+  const [profileImage, setProfileImage] = useState();
+  const [userData, setUserData] = useState({ name: '', phone: '', email: '' });
 
-const [userData, setUserData] = useState({ name: '', phone: '', email: '' });
-useEffect(() => {
-  const fetchUserData = async () => {
-    try {
-      const storedUserData = await AsyncStorage.getItem('userData');
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const storedUserData = await AsyncStorage.getItem('userData');
+        if (storedUserData) {
+          const parsedData = JSON.parse(storedUserData);
+          setUserData({
+            name: parsedData.userName || parsedData.name || '',
+            phone: parsedData.phone || '',
+            email: parsedData.email || parsedData.user || '',
+          });
 
-      if (storedUserData) {
-        const parsedData = JSON.parse(storedUserData);
-        setUserData({
-          name: parsedData.userName || parsedData.name || '',
-          phone: parsedData.phone || '',
-          email: parsedData.email || parsedData.user || '',
-        });
-
-        // ✅ Set profile image if photo exists
-        if (parsedData.photo) {
-          setProfileImage({ uri: parsedData.photo });
+          if (parsedData.photo) {
+            setProfileImage({ uri: parsedData.photo });
+          }
         }
-
-        console.log(parsedData, "==== Parsed userData ====");
+      } catch (error) {
+        console.log('Error fetching user data:', error);
       }
-    } catch (error) {
-      console.log('Error fetching user data:', error);
-    }
-  };
-
-  fetchUserData();
-}, []);
+    };
+    fetchUserData();
+  }, []);
 
   const ImageImportFromGallery = () => {
     ImagePicker.openPicker({
@@ -89,127 +64,81 @@ useEffect(() => {
       height: 400,
       cropping: true,
     }).then(image => {
-      setProfileImage(image)
-      console.log(image,'image');
-    }).catch((error)=>{
-      console.log(error,'erro');
-      
-    })
+      setProfileImage(image);
+    }).catch(error => {
+      console.log(error, 'error');
+    });
   };
 
   return (
     <SafeAreaView style={styles.mianConatainer}>
-      <View
-        style={{
-          ...styles.mianConatainer,
-          paddingHorizontal: moderateScale(20),
-        }}>
-        <TouchableOpacity onPress={() => Alert.alert('Wokring')}>
-          <Image
-            source={imagePath.arrow_back}
-            style={styles.imageArrowBackStye}
-          /> 
+      <View style={styles.container}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={imagePath.arrow_back} style={styles.imageArrowBackStye} />
         </TouchableOpacity>
-        <Text style={styles.profileText}>{'Profile'}</Text>
-        <View style={{alignItems: 'center', marginTop: verticalScale(20)}}>
-          <View style={styles.ProfileView}>
-            <View style={styles.ProfileViewTwo}>
-              <View style={styles.profileViewStyle}>
-                <Image
-  style={styles.profileImage}
-  source={
-    profileImage?.path
-      ? { uri: profileImage.path } // From Image Picker
-      : profileImage?.uri
-      ? { uri: profileImage.uri } // From userData.photo
-      : imagePath.profile_image // Default image
-  }
-/>
 
-                <TouchableOpacity
-                  onPress={() => ImageImportFromGallery()}
-                  style={styles.editImageButton}>
-                  <Image
-                    style={styles.editImageStyle}
-                    source={imagePath.edit}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
+        <Text style={styles.profileText}>My Profile</Text>
+
+        <View style={styles.profileCard}>
+          <View style={styles.profileImageContainer}>
+            <Image
+              style={styles.profileImage}
+              source={
+                profileImage?.path
+                  ? { uri: profileImage.path }
+                  : profileImage?.uri
+                  ? { uri: profileImage.uri }
+                  : imagePath.profile_image
+              }
+            />
+            <TouchableOpacity
+              onPress={ImageImportFromGallery}
+              style={styles.editImageButton}>
+              <Image
+                style={styles.editImageStyle}
+                source={imagePath.edit}
+              />
+            </TouchableOpacity>
           </View>
-         <View>
-  <Text style={styles.userNameText}>{userData.name}</Text> {/* Fixed */}
-  <Text style={styles.userNumberText}>{userData.phone}</Text>
-  <Text style={styles.userNumberText}>{userData.email}</Text> {/* Fixed */}
-</View>
 
-          <FlatList
-            data={Data}
-            contentContainerStyle={{
-              marginTop: moderateScale(40),
-              paddingBottom: moderateScale(20),
-            }}
-            ItemSeparatorComponent={() => (
-              <View style={{height: verticalScale(20)}} />
-            )}
-            keyExtractor={item => item.id.toString()}
-            renderItem={({item}) => {
-              const handleItemPress = async () => {
-                if (item.label === 'Log out') {
-                  await AsyncStorage.removeItem('userData'); // or use clear() to remove everything
-                  navigation.reset({
-                    index: 0,
-                    routes: [{name: 'Login'}],
-                  });
-                } else if (item.label === 'Order History') {
-                  navigation.navigate('OrderHistory');
-                } 
-                else if (item.label === 'Shipping Address') {
-                  navigation.navigate('ShippingAddress');
-                }
-                else {
-                  Alert.alert(item.label); // for now, just alert others
-                }
-              };
-            
-              return (
-                <TouchableOpacity onPress={handleItemPress} style={{flexDirection: 'row', alignItems: 'center'}}>
-                  <View
-                    style={{
-                      width: '20%',
-                      borderRadius: 100,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: moderateScale(32),
-                      width: moderateScale(32),
-                      backgroundColor: colors.backgorundColor,
-                    }}>
-                    <Image
-                      style={{
-                        height: moderateScale(16),
-                        width: moderateScale(16),
-                      }}
-                      source={item.iconeLeft}
-                    />
-                  </View>
-                  <View style={{width: '55%', marginHorizontal: moderateScale(20)}}>
-                    <Text>{item.label}</Text>
-                  </View>
-                  <View style={{width: '20%'}}>
-                    <Image
-                      style={{
-                        width: moderateScale(12),
-                        height: moderateScale(12),
-                      }}
-                      source={item.next}
-                    />
-                  </View>
-                </TouchableOpacity>
-              );
-            }}
-            
-          />
+          <Text style={styles.userNameText}>{userData.name}</Text>
+          <Text style={styles.userInfoText}>{userData.phone}</Text>
+          <Text style={styles.userInfoText}>{userData.email}</Text>
         </View>
+
+        <FlatList
+          data={Data}
+          contentContainerStyle={styles.listContainer}
+          ItemSeparatorComponent={() => <View style={{ height: verticalScale(16) }} />}
+          keyExtractor={item => item.id.toString()}
+          renderItem={({ item }) => {
+            const handleItemPress = async () => {
+              if (item.label === 'Log out') {
+                await AsyncStorage.removeItem('userData');
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Login' }],
+                });
+              } else if (item.label === 'Order History') {
+                navigation.navigate('OrderHistory');
+              } else if (item.label === 'Shipping Address') {
+                navigation.navigate('ShippingAddress');
+              } else {
+                Alert.alert(item.label);
+              }
+            };
+
+            return (
+              <TouchableOpacity onPress={handleItemPress} style={styles.listItem}>
+                <View style={styles.iconWrapper}>
+                  <Image style={styles.iconImage} source={item.iconeLeft} />
+                </View>
+                <Text style={styles.itemLabel}>{item.label}</Text>
+                <Image style={styles.arrowIcon} source={item.next} />
+              </TouchableOpacity>
+            );
+          }}
+        />
       </View>
     </SafeAreaView>
   );
@@ -217,69 +146,108 @@ useEffect(() => {
 
 export default Profile;
 
+
 const styles = StyleSheet.create({
   mianConatainer: {
     flex: 1,
+    backgroundColor: '#F9F9F9',
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: moderateScale(20),
+  },
+  backButton: {
+    marginTop: verticalScale(12),
+    width: 30,
   },
   imageArrowBackStye: {
-    width: moderateScale(12),
-    height: verticalScale(12),
+    width: moderateScale(16),
+    height: verticalScale(16),
   },
   profileText: {
-    fontSize: scale(16),
+    fontSize: scale(18),
+    fontWeight: 'bold',
     textAlign: 'center',
     marginTop: verticalScale(12),
+    color: colors.black,
   },
-  ProfileView: {
+  profileCard: {
     alignItems: 'center',
-    justifyContent: 'center',
-    height: moderateScale(150),
-    width: moderateScale(150),
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: colors.roudnCOlor,
+    marginTop: verticalScale(24),
+    padding: moderateScale(20),
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
-  ProfileViewTwo: {
-    height: moderateScale(130),
-    width: moderateScale(130),
-    borderRadius: 100,
-    borderWidth: 1,
-    borderColor: colors.roudnCOlor,
-    justifyContent: 'center',
-    alignItems: 'center',
+  profileImageContainer: {
+    position: 'relative',
+    marginBottom: verticalScale(12),
   },
   profileImage: {
-    height: moderateScale(80),
-    width: moderateScale(80),
-    borderRadius:100,
-  },
-  profileViewStyle: {
-    backgroundColor: colors.backgorundColor,
     height: moderateScale(100),
     width: moderateScale(100),
     borderRadius: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#ddd',
   },
   editImageButton: {
     position: 'absolute',
-    bottom: moderateScale(6),
-    right: moderateScale(4),
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 4,
+    elevation: 3,
   },
   editImageStyle: {
-    width: moderateScale(20),
-    height: moderateScale(20),
+    width: moderateScale(16),
+    height: moderateScale(16),
   },
   userNameText: {
-    fontSize: scale(14),
+    fontSize: scale(16),
+    fontWeight: 'bold',
     color: colors.black,
-    textAlign: 'center',
-    marginTop: moderateScale(16),
   },
-  userNumberText: {
+  userInfoText: {
     fontSize: scale(14),
-    color: colors.black,
-    textAlign: 'center',
-    marginTop: moderateScale(4),
+    color: '#555',
+    marginTop: 2,
+  },
+  listContainer: {
+    marginTop: verticalScale(30),
+    paddingBottom: verticalScale(40),
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: moderateScale(14),
+    borderRadius: 12,
+    elevation: 2,
+  },
+  iconWrapper: {
+    width: moderateScale(32),
+    height: moderateScale(32),
+    borderRadius: 16,
+    backgroundColor: colors.backgorundColor,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconImage: {
+    height: moderateScale(16),
+    width: moderateScale(16),
+  },
+  itemLabel: {
+    flex: 1,
+    marginHorizontal: moderateScale(16),
+    fontSize: scale(14),
+    color: '#333',
+  },
+  arrowIcon: {
+    width: moderateScale(12),
+    height: moderateScale(12),
   },
 });
+

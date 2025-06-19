@@ -67,14 +67,12 @@ const removeDuplicateAddresses = (addresses) => {
   useEffect(() => {
     fetchBillingAddresses();
   }, []);
-
   const handleSelectAddress = (selectedAddress) => {
     navigation.navigate('RazorpayPayment', {
       product,
       billingAddress: selectedAddress,
     });
   };
-
   const handleAddNewAddress = () => {
     const { fullName, street, city } = newAddress;
     if (fullName && street && city) {
@@ -87,7 +85,6 @@ const removeDuplicateAddresses = (addresses) => {
       Alert.alert('Validation', 'Please fill all required fields');
     }
   };
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.header}>Select Existing Address</Text>
