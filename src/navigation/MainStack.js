@@ -13,6 +13,7 @@ import GiftDetailsScreen from '../screens/GiftDetailsScreen';
 import InvoiceScreen from '../screens/InvoiceScreen';
 import RazorpayPaymentButton from '../screens/RazorpayPaymentButton';
 import BillingAddressScreen from '../screens/BillingAddressScreen';
+import ShippingAddressScreen from '../screens/ShippingAddressScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +29,7 @@ const MainStack = () => {
     <Stack.Screen name="MyBottomTab" component={MyBottomTab} />
     <Stack.Screen name="RazorpayPayment" component={RazorpayPaymentButton} />
 <Stack.Screen name="BillingAddress" component={BillingAddressScreen} />
+<Stack.Screen name="ShippingAddress" component={ShippingAddressScreen} />
 
     <Stack.Screen name="OrderHistory" component={OrderHistory} />
     <Stack.Screen name="ProductsScreen" component={ProductsScreen} />

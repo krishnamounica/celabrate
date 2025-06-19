@@ -31,24 +31,24 @@ const Profile = ({navigation}) => {
       label: 'Shipping Address',
       next: imagePath.next,
     },
-    {
-      id: 3,
-      iconeLeft: imagePath.compliant,
-      label: 'Create Request',
-      next: imagePath.next,
-    },
-    {
-      id: 4,
-      iconeLeft: imagePath.quote_request,
-      label: 'Privacy Policy',
-      next: imagePath.next,
-    },
-    {
-      id: 5,
-      iconeLeft: imagePath.settings,
-      label: 'Settings',
-      next: imagePath.next,
-    },
+    // {
+    //   id: 3,
+    //   iconeLeft: imagePath.compliant,
+    //   label: 'Create Request',
+    //   next: imagePath.next,
+    // },
+    // {
+    //   id: 4,
+    //   iconeLeft: imagePath.quote_request,
+    //   label: 'Privacy Policy',
+    //   next: imagePath.next,
+    // },
+    // {
+    //   id: 5,
+    //   iconeLeft: imagePath.settings,
+    //   label: 'Settings',
+    //   next: imagePath.next,
+    // },
     {id: 6, iconeLeft: imagePath.out, label: 'Log out', next: imagePath.next},
   ];
 
@@ -65,8 +65,14 @@ useEffect(() => {
         setUserData({
           name: parsedData.userName || parsedData.name || '',
           phone: parsedData.phone || '',
-          email: parsedData.email || parsedData.user || '', 
+          email: parsedData.email || parsedData.user || '',
         });
+
+        // ✅ Set profile image if photo exists
+        if (parsedData.photo) {
+          setProfileImage({ uri: parsedData.photo });
+        }
+
         console.log(parsedData, "==== Parsed userData ====");
       }
     } catch (error) {
@@ -76,9 +82,6 @@ useEffect(() => {
 
   fetchUserData();
 }, []);
-
-
-
 
   const ImageImportFromGallery = () => {
     ImagePicker.openPicker({
@@ -113,11 +116,16 @@ useEffect(() => {
             <View style={styles.ProfileViewTwo}>
               <View style={styles.profileViewStyle}>
                 <Image
-                  style={styles.profileImage}
-                  // source={imagePath.profile_image}
-                  source={profileImage?.sourceURL ?  {uri:profileImage?.sourceURL
-                  } : imagePath.profile_image}
-                />
+  style={styles.profileImage}
+  source={
+    profileImage?.path
+      ? { uri: profileImage.path } // From Image Picker
+      : profileImage?.uri
+      ? { uri: profileImage.uri } // From userData.photo
+      : imagePath.profile_image // Default image
+  }
+/>
+
                 <TouchableOpacity
                   onPress={() => ImageImportFromGallery()}
                   style={styles.editImageButton}>
@@ -155,7 +163,11 @@ useEffect(() => {
                   });
                 } else if (item.label === 'Order History') {
                   navigation.navigate('OrderHistory');
-                } else {
+                } 
+                else if (item.label === 'Shipping Address') {
+                  navigation.navigate('ShippingAddress');
+                }
+                else {
                   Alert.alert(item.label); // for now, just alert others
                 }
               };

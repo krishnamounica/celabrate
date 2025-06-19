@@ -72,6 +72,7 @@ const RazorpayPaymentButton = ({ route }) => {
                 razorpay_order_id: data.razorpay_order_id,
                 razorpay_signature: data.razorpay_signature,
                 productId: product.id,
+                productName: product.name,
                 amount: totalAmount,
                 userId: userId,
                 billingAddress: billingAddress,

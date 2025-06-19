@@ -71,74 +71,7 @@ const [paymentDetails, setPaymentDetails] = useState({
   paymentMode: "",
   createdAt: "",
 });
-// const openRazorpay = async () => {
-//   const amountInPaise = product.price * 100;
-//   const userDataString = await AsyncStorage.getItem('userData');
-//   const userData = JSON.parse(userDataString);
-//   const userId = userData.id
 
-//   try {
-//     const orderResponse = await fetch('https://easyshop-7095.onrender.com/api/v1/users/create-order', {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({
-//         amount: amountInPaise,
-//         currency: 'INR',
-//       }),
-//     });
-//     const orderData = await orderResponse.json();
-//     const options = {
-//       description: 'Purchase Product',
-//       currency: 'INR',
-//       key: 'rzp_test_Zr4AoaaUCDwWjy',
-//           amount: amountInPaise / 100,
-
-//       name: 'Wish and Surprise',
-//       order_id: orderData.orderId, // Ensure this matches the backend response
-//       prefill: {
-//         email: 'test@example.com',
-//         contact: '9876543210',
-//         name: 'Test User',
-//       },
-//       theme: { color: '#F37254' },
-//     };
-
-//     RazorpayCheckout.open(options)
-//     .then((data) => {
-//       return fetch('https://easyshop-7095.onrender.com/api/v1/users/save-payment', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({
-//           razorpay_payment_id: data.razorpay_payment_id,
-//           razorpay_order_id: data.razorpay_order_id,
-//           razorpay_signature: data.razorpay_signature,
-//           productId: product.id,
-//           amount: amountInPaise / 100,
-//           userId: userId,
-//         }),
-//       });
-//     })
-//     .then(response => response.json())
-//     .then(result => {
-//       // Set the modal visibility to true after a successful payment
-//       setShowModal(true);
-//       setPaymentDetails({
-//         amount: amountInPaise/ 100,
-//         paymentId: result.paymentId,
-//         paymentMode: 'Netbanking', 
-//         createdAt: result.createdAt, 
-//       });
-//     })
-//     .catch(error => {
-//       console.error('Error saving payment:', error);
-//     });
-  
-//   } catch (err) {
-//     console.error('Error initiating Razorpay payment:', err);
-//   }
-// };
   return (
     <View style={styles.productCard}>
       {/* Main Image */}

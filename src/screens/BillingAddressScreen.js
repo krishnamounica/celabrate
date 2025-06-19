@@ -29,9 +29,7 @@ const BillingAddressScreen = ({ route }) => {
     const userData = JSON.parse(userDataString);
     const token = userData.token;
     const userId = userData.id || userData._id;
-
     console.log('Token:', token, 'UserID:', userId);
-console.log()
     const response = await axios.get(
   `https://easyshop-7095.onrender.com/api/v1/users/address/${userId}`,
   {
@@ -40,14 +38,13 @@ console.log()
     },
   }
 );
-
-
-    console.log(response.data, "====response data=====");
+console.log(response.data, "====response data=====");
+// const payments = Array.isArray(response.data) ? response.data : [];
+// setBillingData(payments.map(p => p.address).filter(Boolean));
 const payments = Array.isArray(response.data) ? response.data : [];
-
-setBillingData(payments.map(p => p.address).filter(Boolean));
-
-
+const allAddresses = payments.map(p => p.address).filter(Boolean);
+const uniqueAddresses = removeDuplicateAddresses(allAddresses);
+setBillingData(uniqueAddresses);
   } catch (error) {
     console.error(
       'Failed to fetch billing addresses:',
@@ -58,8 +55,15 @@ setBillingData(payments.map(p => p.address).filter(Boolean));
     setLoading(false);
   }
 };
-
-
+const removeDuplicateAddresses = (addresses) => {
+  const seen = new Set();
+  return addresses.filter((addr) => {
+    const key = `${addr.fullName}|${addr.street}|${addr.city}|${addr.state}|${addr.postalCode}|${addr.country}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
   useEffect(() => {
     fetchBillingAddresses();
   }, []);
