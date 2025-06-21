@@ -1,0 +1,5 @@
+rm -rf android/app/build
+rm -rf android/.cxx
+rm -rf node_modules
+rm -rf android/app/.cxx
+rm -rf android/app/build/generated

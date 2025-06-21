@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
   Switch,
+  ScrollView,
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 
@@ -19,6 +20,35 @@ const Resin = () => {
   const [quantity, setQuantity] = useState(1);
   const [addFlowers, setAddFlowers] = useState(false);
   const [addGlitter, setAddGlitter] = useState(false);
+  const [size, setSize] = useState('Medium');
+
+  const priceMap = {
+    Small: 299,
+    Medium: 499,
+    Large: 699,
+  };
+
+  const previewSizes = {
+    Small: 120,
+    Medium: 160,
+    Large: 200,
+  };
+
+  const colorStyles = {
+    Red: '#ff4d4d',
+    Glitter: '#ffc0cb',
+    Pastel: '#b3e6ff',
+    Black: '#222',
+  };
+
+  const shapeStyles = {
+    Rectangle: { borderRadius: 8 },
+    Circle: { borderRadius: 90 },
+    Heart: { borderRadius: 25 },
+  };
+
+  const pricePerUnit = priceMap[size];
+  const totalPrice = pricePerUnit * quantity;
 
   const pickImage = () => {
     ImagePicker.openPicker({
@@ -37,9 +67,7 @@ const Resin = () => {
   };
 
   const handleQuantityChange = (type) => {
-    setQuantity((prev) =>
-      type === 'inc' ? prev + 1 : prev > 1 ? prev - 1 : 1
-    );
+    setQuantity((prev) => (type === 'inc' ? prev + 1 : prev > 1 ? prev - 1 : 1));
   };
 
   const handleConfirm = () => {
@@ -53,8 +81,11 @@ const Resin = () => {
       imageUri,
       shape,
       color,
+      size,
       caption,
       quantity,
+      pricePerUnit,
+      totalPrice,
       embeds: {
         flowers: addFlowers,
         glitter: addGlitter,
@@ -64,22 +95,8 @@ const Resin = () => {
     Alert.alert('Saved!', JSON.stringify(order, null, 2));
   };
 
-  // 🎨 Simulate frame color styles
-  const colorStyles = {
-    Red: '#ff4d4d',
-    Glitter: '#ffc0cb',
-    Pastel: '#b3e6ff',
-    Black: '#222',
-  };
-
-  // 🖼 Shape styles (borderRadius simulation)
-  const shapeStyles = {
-    Rectangle: { borderRadius: 8 },
-    Circle: { borderRadius: 90 },
-    Heart: { borderRadius: 25 }, // symbolic for now
-  };
-
   return (
+      <ScrollView contentContainerStyle={styles.container}>
     <View style={styles.container}>
       <Text style={styles.heading}>🎨 Resin Frame Creator</Text>
 
@@ -89,35 +106,57 @@ const Resin = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* 👁 Live Preview */}
+      {/* Live Preview */}
       <View style={styles.previewContainer}>
         <Text style={styles.previewLabel}>Live Preview</Text>
         <View
           style={[
-            styles.previewBox,
+            styles.previewFrame,
             {
-              backgroundColor: colorStyles[color] || '#ccc',
+              borderColor: colorStyles[color] || '#ccc',
               ...shapeStyles[shape],
             },
           ]}
         >
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.image} />
-          ) : (
-            <Text style={styles.placeholder}>No Image</Text>
-          )}
-          {caption ? (
-            <View style={styles.captionOverlay}>
-              <Text style={styles.captionText}>{caption}</Text>
-            </View>
-          ) : null}
-          {(addFlowers || addGlitter) && (
-            <View style={styles.addonOverlay}>
-              {addFlowers && <Text style={styles.addonText}>🌸</Text>}
-              {addGlitter && <Text style={styles.addonText}>✨</Text>}
-            </View>
-          )}
+          <View
+            style={[
+              styles.imageInner,
+              {
+                width: previewSizes[size],
+                height: previewSizes[size],
+              },
+            ]}
+          >
+            {imageUri ? (
+              <Image
+  source={{ uri: imageUri }}
+  style={[
+    styles.image,
+    {
+      borderRadius: shape === 'Circle' ? previewSizes[size] / 2 : 10,
+    },
+  ]}
+/>
+
+            ) : (
+              <Text style={styles.placeholder}>No Image</Text>
+            )}
+            {caption ? (
+              <View style={styles.captionOverlay}>
+                <Text style={styles.captionText}>{caption}</Text>
+              </View>
+            ) : null}
+            {(addFlowers || addGlitter) && (
+              <View style={styles.addonOverlay}>
+                {addFlowers && <Text style={styles.addonText}>🌸</Text>}
+                {addGlitter && <Text style={styles.addonText}>✨</Text>}
+              </View>
+            )}
+          </View>
         </View>
+        <Text style={styles.colorLabel}>
+          Theme: {color} | Size: {size}
+        </Text>
       </View>
 
       <Text style={styles.label}>Frame Shape:</Text>
@@ -126,10 +165,7 @@ const Resin = () => {
           <TouchableOpacity
             key={item}
             onPress={() => setShape(item)}
-            style={[
-              styles.optionBtn,
-              shape === item && styles.selectedOption,
-            ]}
+            style={[styles.optionBtn, shape === item && styles.selectedOption]}
           >
             <Text>{item}</Text>
           </TouchableOpacity>
@@ -142,10 +178,20 @@ const Resin = () => {
           <TouchableOpacity
             key={item}
             onPress={() => setColor(item)}
-            style={[
-              styles.optionBtn,
-              color === item && styles.selectedOption,
-            ]}
+            style={[styles.optionBtn, color === item && styles.selectedOption]}
+          >
+            <Text>{item}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Text style={styles.label}>Mould Size:</Text>
+      <View style={styles.row}>
+        {['Small', 'Medium', 'Large'].map((item) => (
+          <TouchableOpacity
+            key={item}
+            onPress={() => setSize(item)}
+            style={[styles.optionBtn, size === item && styles.selectedOption]}
           >
             <Text>{item}</Text>
           </TouchableOpacity>
@@ -189,23 +235,37 @@ const Resin = () => {
       <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
         <Text style={styles.confirmText}>Add to Cart</Text>
       </TouchableOpacity>
+
+      <View style={{ marginTop: 10 }}>
+        <Text style={{ fontSize: 14, color: '#444' }}>
+          Price per Unit: ₹{pricePerUnit}
+        </Text>
+        <Text style={{ fontWeight: 'bold', fontSize: 16 }}>
+          Total: ₹{totalPrice}
+        </Text>
+      </View>
     </View>
+    </ScrollView>
   );
 };
 
 export default Resin;
 
+// 🎨 Styles remain the same as your original post
+
+
+
 const styles = StyleSheet.create({
   container: {
     width: '100%',
     alignItems: 'center',
+    padding: 16,
   },
   heading: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFD700',
-    marginBottom: 10,
-    textAlign: 'center',
+    color: '#FFA500',
+    marginBottom: 12,
   },
   uploadButton: {
     backgroundColor: '#FFD700',
@@ -220,22 +280,24 @@ const styles = StyleSheet.create({
   previewContainer: {
     width: '100%',
     marginBottom: 15,
+    alignItems: 'center',
   },
   previewLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#444',
     marginBottom: 4,
   },
-  previewBox: {
-    width: 180,
-    height: 180,
+  previewFrame: {
+    borderWidth: 6,
+    padding: 4,
+    borderRadius: 12,
+  },
+  imageInner: {
+    width: 160,
+    height: 160,
     overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#FFD700',
-    alignSelf: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
+    borderRadius: 10,
+    backgroundColor: '#fff',
   },
   image: {
     width: '100%',
@@ -244,6 +306,8 @@ const styles = StyleSheet.create({
   placeholder: {
     color: '#999',
     fontSize: 14,
+    textAlign: 'center',
+    paddingTop: 65,
   },
   captionOverlay: {
     position: 'absolute',
@@ -262,10 +326,15 @@ const styles = StyleSheet.create({
     top: 4,
     right: 4,
     flexDirection: 'row',
-    gap: 4,
   },
   addonText: {
     fontSize: 18,
+    marginLeft: 4,
+  },
+  colorLabel: {
+    marginTop: 5,
+    fontSize: 12,
+    color: '#444',
   },
   label: {
     alignSelf: 'flex-start',
@@ -276,6 +345,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 10,
     marginBottom: 12,
   },
@@ -284,6 +354,8 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     padding: 8,
     borderRadius: 8,
+    marginRight: 10,
+    marginBottom: 6,
   },
   selectedOption: {
     backgroundColor: '#FFD70050',

@@ -14,6 +14,8 @@ import InvoiceScreen from '../screens/InvoiceScreen';
 import RazorpayPaymentButton from '../screens/RazorpayPaymentButton';
 import BillingAddressScreen from '../screens/BillingAddressScreen';
 import ShippingAddressScreen from '../screens/ShippingAddressScreen';
+import KeyChains from '../screens/KeyChains';
+import Resin from '../screens/Resin';
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +32,10 @@ const MainStack = () => {
     <Stack.Screen name="RazorpayPayment" component={RazorpayPaymentButton} />
 <Stack.Screen name="BillingAddress" component={BillingAddressScreen} />
 <Stack.Screen name="ShippingAddress" component={ShippingAddressScreen} />
+<Stack.Screen name="KeyChain" component={KeyChains} />
+<Stack.Screen name="resin" component={Resin} />
+
+
 
     <Stack.Screen name="OrderHistory" component={OrderHistory} />
     <Stack.Screen name="ProductsScreen" component={ProductsScreen} />
