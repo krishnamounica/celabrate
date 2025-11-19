@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import axios from 'axios';
+import withSplashScreen from '../navigation/withSplashScreen';
 
 const GiftDetailsScreen = ({ route }) => {
-  const { id } = route.params; // get gift ID from navigation
-  console.log(id,"=========")
-  // '68160802bace24e9c7b555dc'
+  const { id } = route.params; 
+
  
   const [gift, setGift] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,14 +15,14 @@ const GiftDetailsScreen = ({ route }) => {
   }, []);
   useEffect(() => {
     if (route.params?.id) {
-      console.log('Deep link ID:', route.params.id);  // Log the received ID
+     
     }
   }, [route]);
 
   const fetchGift = async () => {
     try {
-      const response = await axios.get(`https://easyshop-7095.onrender.com/api/v1/giftrequests/gift/${id}`);
-      setGift(response.data.gift);
+      const response = await axios.get(`https://wishandsurprise.com/backend/get_gift_request.php?userId=${id}`);
+      setGift(response.data);
     } catch (error) {
       console.error('Error fetching gift:', error);
       Alert.alert('Error', 'Failed to fetch gift details.');
@@ -148,4 +148,5 @@ const styles = StyleSheet.create({
   },
 });
 
+// export const  GiftDetailsScreen;
 export default GiftDetailsScreen;

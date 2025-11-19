@@ -14,11 +14,11 @@ const Categories = () => {
     ? [...new Set(products.map((product) => 
         typeof product.category === 'string' ? product.category : product.category?.name
       ))]
-      .filter(Boolean) // Remove undefined/null values
+      .filter(Boolean) 
       .map((category, index) => ({
         id: String(index + 1),
         name: category,
-        // icon: require('../../assets/burger.jpg'), // Static image for now
+        
       }))
     : [];
 

@@ -13,14 +13,13 @@ import RazorpayCheckout from 'react-native-razorpay';
 import axios from "axios";
 
 const ProductsScreen = ({ route }) => {
-  const { categoryId } = route.params || {}; // safe destructure
+  const { categoryId } = route.params || {}; 
 
-  console.log(categoryId)
   const { items: products } = useSelector((state) => state.products);
 
   // Safely filter products
   const filteredProducts = (products || []).filter(
-    (product) => product?.category?.id === categoryId
+    (product) => product?.category_id === categoryId
   );
 
   return (
@@ -85,18 +84,18 @@ const [paymentDetails, setPaymentDetails] = useState({
 
       {/* Thumbnails */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.thumbnailContainer}>
-        {(product?.images || []).map((img, index) => (
+        {/* {(product?.images || []).map((img, index) => (
           <TouchableOpacity key={index} onPress={() => setMainImage(img)}>
             <Image source={{ uri: img }} style={styles.thumbnail} />
           </TouchableOpacity>
-        ))}
+        ))} */}
       </ScrollView>
 
       {/* Product Details */}
       <View style={styles.detailsContainer}>
         <Text style={styles.productName}>{product?.name || "Unnamed Product"}</Text>
         <Text style={styles.brandText}>Brand: {product?.brand || "Unknown"}</Text>
-        <Text style={styles.categoryText}>Category: {product?.category?.name || "Unknown"}</Text>
+        <Text style={styles.categoryText}>Category: {product?.category_id || "Unknown"}</Text>
         <Text style={styles.priceText}>Price: ${product?.price ?? "N/A"}</Text>
         <Text style={styles.stockText}>
           {(product?.countInStock ?? 0) > 0 ? "In Stock" : "Out of Stock"}
@@ -188,6 +187,8 @@ const [paymentDetails, setPaymentDetails] = useState({
         { label: "Sister", value: "Sister" },
         { label: "Mother", value: "Mother" },
         { label: "Father", value: "Father" },
+        {label:"Husband", value:"Husband"},
+        {label:"Wife", value: "Wife"},
       ]}
       placeholder={{ label: "Select a relation", value: null }}
       style={pickerSelectStyles}
@@ -319,13 +320,13 @@ const [paymentDetails, setPaymentDetails] = useState({
                   relation: formData.relation,
                   occasion: formData.occasion,
                   date: formData.date,
+                  productId: product.id,
                   flatNumber: formData.flatNo,
                   building: formData.apartment,
                   landmark: formData.landmark,
                   district: formData.district,
                   state: formData.state,
                   pincode: formData.pincode,
-                  productId: product._id,
                   productName: product.name,
                   productPrice: product.price,
                   status: "pending",
@@ -340,8 +341,7 @@ const [paymentDetails, setPaymentDetails] = useState({
                   noOfPayments: 0,
                 };
               
-                console.log("=====token---------"," 'Authorization':", `Bearer ${userData.token}`)
-                const response = await axios.post('https://easyshop-7095.onrender.com/api/v1/giftrequests', payload, {
+                const response = await axios.post(`https://wishandsurprise.com/backend/gift_submit.php`, payload, {
   headers: {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${userData.token}`
@@ -350,7 +350,6 @@ const [paymentDetails, setPaymentDetails] = useState({
 
                 if (response.status === 200 || response.status === 201) {
                   alert("Gift request submitted successfully!");
-                  console.log("API Response:", response.data);
                   setGiftModalVisible(false);
                   setFormStep(1);
                   navigation.navigate('Request');

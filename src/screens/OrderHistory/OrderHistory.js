@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
-  ScrollView
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -14,39 +13,37 @@ const OrderHistoryScreen = () => {
   const [orderData, setOrderData] = useState([]);
   const [loading, setLoading] = useState(true);
 
- const fetchBillingAddresses = async () => {
-  try {
-    const userDataString = await AsyncStorage.getItem('userData');
-    const userData = JSON.parse(userDataString);
-    const token = userData.token;
-    const userId = userData.id || userData._id;
+  const fetchBillingAddresses = async () => {
+    try {
+      const userDataString = await AsyncStorage.getItem('userData');
+      const userData = JSON.parse(userDataString);
+      const token = userData.token;
+      const userId = userData.id || userData._id;
 
-    const response = await axios.get(
-      `https://easyshop-7095.onrender.com/api/v1/users/address/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      const response = await axios.get(
+        `https://wishandsurprise.com/backend/get_orders.php?userId=${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      let payments = Array.isArray(response.data) ? response.data : [];
 
-    let payments = Array.isArray(response.data) ? response.data : [];
+      // Sort by createdAt (latest first)
+      payments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // ✅ Sort by createdAt (latest first)
-    payments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    setOrderData(payments);
-  } catch (error) {
-    console.error(
-      'Failed to fetch billing addresses:',
-      error.response?.data || error.message
-    );
-    setOrderData([]);
-  } finally {
-    setLoading(false);
-  }
-};
-
+      setOrderData(payments);
+    } catch (error) {
+      console.error(
+        'Failed to fetch orders:',
+        error.response?.data || error.message
+      );
+      setOrderData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchBillingAddresses();
@@ -70,18 +67,16 @@ const OrderHistoryScreen = () => {
       <Text style={styles.value}>{item.razorpay_payment_id}</Text>
 
       <Text style={styles.label}>Order Date:</Text>
-      <Text style={styles.value}>{new Date(item.createdAt).toLocaleString()}</Text>
+      <Text style={styles.value}>
+        {new Date(item.createdAt).toLocaleString()}
+      </Text>
 
-      {item.address && (
+      {item.address ? (
         <>
           <Text style={styles.label}>Shipping Address:</Text>
-          <Text style={styles.value}>
-            {item.address.fullName}, {item.address.street},{'\n'}
-            {item.address.city}, {item.address.state} - {item.address.postalCode},{'\n'}
-            {item.address.country}
-          </Text>
+          <Text style={styles.value}>{item.address}</Text>
         </>
-      )}
+      ) : null}
     </View>
   );
 
@@ -95,7 +90,7 @@ const OrderHistoryScreen = () => {
       ) : (
         <FlatList
           data={orderData}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
         />

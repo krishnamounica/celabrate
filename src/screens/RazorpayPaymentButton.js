@@ -21,7 +21,7 @@ const RazorpayPaymentButton = ({ route }) => {
   const deliveryCharges = 50;
   const txnCharges = 10;
   const totalAmount = Number((productPrice + gst + deliveryCharges + txnCharges).toFixed(2));
-  const amountInPaise = totalAmount * 100;
+  const amountInPaise =  totalAmount * 100;
 
   const openRazorpay = async () => {
     const userDataString = await AsyncStorage.getItem('userData');
@@ -31,7 +31,7 @@ const RazorpayPaymentButton = ({ route }) => {
 
     try {
       const orderResponse = await fetch(
-        'https://easyshop-7095.onrender.com/api/v1/users/create-order',
+        'https://wishandsurprise.com/backend/create-order.php',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -47,7 +47,7 @@ const RazorpayPaymentButton = ({ route }) => {
       const options = {
         description: 'Purchase Product',
         currency: 'INR',
-        key: 'rzp_test_Zr4AoaaUCDwWjy',
+        key: 'rzp_live_yOvVxv8Djhx8ds',
         amount: amountInPaise,
         name: 'Wish and Surprise',
         order_id: orderData.orderId,
@@ -58,12 +58,14 @@ const RazorpayPaymentButton = ({ route }) => {
         },
         theme: { color: '#F37254' },
       };
+      
 
       RazorpayCheckout.open(options)
+      
         .then((data) => {
           razorpayResponse = data;
           return fetch(
-            'https://easyshop-7095.onrender.com/api/v1/users/save-payment',
+            'https://wishandsurprise.com/backend/save-payment.php',
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -75,11 +77,11 @@ const RazorpayPaymentButton = ({ route }) => {
                 productName: product.name,
                 amount: totalAmount,
                 userId: userId,
-                billingAddress: billingAddress,
+                billingAddress: JSON.stringify(billingAddress),
                 tax: gst,
                 deliveryCharges: deliveryCharges,
                 transactionCharges: txnCharges,
-                address:billingAddress
+                address:JSON.stringify(billingAddress)
               }),
             }
           );
@@ -125,13 +127,19 @@ const RazorpayPaymentButton = ({ route }) => {
       </View>
 
       {/* Billing Address Card */}
-      <View style={styles.card}>
+      {/* <View style={styles.card}>
         <Text style={styles.cardTitle}>Billing Address</Text>
         <Text>{billingAddress.fullName}</Text>
         <Text>{billingAddress.street}</Text>
         <Text>{billingAddress.city}, {billingAddress.state}</Text>
         <Text>{billingAddress.postalCode}, {billingAddress.country}</Text>
-      </View>
+      </View> */}
+      {/* Billing Address Card */}
+<View style={styles.card}>
+  <Text style={styles.cardTitle}>Billing Address</Text>
+  <Text>{billingAddress}</Text>
+</View>
+
 
       {/* Payment Details Card */}
       <View style={styles.card}>

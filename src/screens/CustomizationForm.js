@@ -1,14 +1,29 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert, ScrollView, Switch
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Alert,
+  ScrollView,
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
+import MugPreviewWithMockup from './MugPreviewWithMockup';
+import TShirtPreview from './TShirtPreview';
+import KeychainPreview from './KeychainPreview';
+import TShirtCustomizer from '../../TShirtCustomizer';
 
 const CustomizationForm = () => {
   const [productType, setProductType] = useState('Keychain');
   const [color, setColor] = useState('White');
   const [customText, setCustomText] = useState('');
   const [imageUri, setImageUri] = useState(null);
+
+
+const [showTShirtModal, setShowTShirtModal] = useState(false);
+
 
   // Specific Inputs
   const [shape, setShape] = useState('Round'); // For keychain
@@ -23,7 +38,8 @@ const CustomizationForm = () => {
       width: 500,
       height: 500,
       cropping: true,
-    }).then(image => setImageUri(image.path))
+    })
+      .then(image => setImageUri(image.path))
       .catch(err => {
         if (err.code !== 'E_PICKER_CANCELLED') {
           Alert.alert('Image selection failed.');
@@ -45,44 +61,22 @@ const CustomizationForm = () => {
   };
 
   return (
-
-  <ScrollView contentContainerStyle={styles.container}>
-    <Text style={styles.title}>🛠 Customize Your Product</Text>
-
-    {/* 🖼 Live Preview */}
-    <Text style={styles.label}>Live Preview:</Text>
-    <View style={[styles.previewBox, { backgroundColor: color.toLowerCase() }]}>
-      {productType === 'Keychain' && (
-        <View style={[
-          styles.keychainShape,
-          shape === 'Round' && { borderRadius: 60 },
-          shape === 'Square' && { borderRadius: 6 },
-          shape === 'Heart' && { borderRadius: 20, transform: [{ rotate: '-45deg' }] }
-        ]}>
-          {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImage} />}
-          {customText !== '' && <Text style={styles.previewText}>{customText}</Text>}
-        </View>
-      )}
-
-      {productType === 'Mug' && (
-        <View style={styles.mugShape}>
-          {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImage} />}
-          {customText !== '' && <Text style={styles.previewText}>{customText}</Text>}
-          <View style={[styles.handle, handleSide === 'Left' ? { left: -20 } : { right: -20 }]} />
-        </View>
-      )}
-
-      {productType === 'T-shirt' && (
-        <View style={styles.tshirtShape}>
-          {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImage} />}
-          {customText !== '' && <Text style={styles.previewText}>{customText}</Text>}
-        </View>
-      )}
-    </View>
-
-    {/* 👇 Insert rest of the existing UI (product selection, inputs, etc.) here */}
-
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>🛠 Customize Your Product</Text>
+
+      {/* 🖼 Live Preview */}
+      <Text style={styles.label}>Live Preview:</Text>
+      <View style={styles.previewBox}>
+        {productType === 'Keychain' && (
+          <KeychainPreview shape={shape} imageUri={imageUri} customText={customText} />
+        )}
+        {productType === 'Mug' && (
+          <MugPreviewWithMockup imageUri={imageUri} customText={customText} />
+        )}
+        {productType === 'T-shirt' && (
+          <TShirtCustomizer />
+        )}
+      </View>
 
       {/* Product Type */}
       <Text style={styles.label}>Select Product:</Text>
@@ -290,63 +284,20 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   previewBox: {
-  width: '100%',
-  height: 200,
-  marginBottom: 20,
-  justifyContent: 'center',
-  alignItems: 'center',
-  borderWidth: 1,
-  borderColor: '#ddd',
-  borderRadius: 10,
-  padding: 10,
-},
-keychainShape: {
-  width: 120,
-  height: 120,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: '#fff',
-  overflow: 'hidden',
-},
-mugShape: {
-  width: 140,
-  height: 100,
-  backgroundColor: '#fff',
-  justifyContent: 'center',
-  alignItems: 'center',
-  position: 'relative',
-  borderRadius: 10,
-},
-handle: {
-  width: 20,
-  height: 40,
-  backgroundColor: '#fff',
-  position: 'absolute',
-  top: 30,
-  borderRadius: 10,
-},
-tshirtShape: {
-  width: 140,
-  height: 140,
-  backgroundColor: '#fff',
-  justifyContent: 'center',
-  alignItems: 'center',
-  borderRadius: 8,
-},
-previewImage: {
-  width: '100%',
-  height: '100%',
-  position: 'absolute',
-  zIndex: -1,
-},
-previewText: {
-  color: '#000',
-  fontWeight: 'bold',
-  textAlign: 'center',
-  backgroundColor: '#ffffff80',
-  paddingHorizontal: 6,
-  paddingVertical: 2,
-  borderRadius: 4,
-},
-
+    width: '100%',
+    height: 240,
+    marginBottom: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 12,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
 });

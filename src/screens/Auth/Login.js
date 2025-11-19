@@ -45,11 +45,13 @@ const Login = ({ navigation }) => {
 
   const handleLogin = async () => {
     setLoading(true);
-    const url = `https://easyshop-7095.onrender.com/api/v1/users/login`;
+    
+    const url = `https://wishandsurprise.com/backend/login.php`;
     try {
       const response = await axios.post(url, formData, {
         headers: { 'Content-Type': 'application/json' },
       });
+      console.log(`https://wishandsurprise.com/backend/login.php`,formData,"=====",response)
 
       if (response.status === 200 || response.status === 201) {
         Alert.alert('Success', 'Logged in successfully!');
@@ -70,7 +72,6 @@ const Login = ({ navigation }) => {
       setSigningIn(true);
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const result = await GoogleSignin.signIn();
-      console.log('Google Sign-In result:', result);
       const { email, name, photo, id } = result.data.user;
 
       let rr = {
@@ -78,12 +79,12 @@ const Login = ({ navigation }) => {
   name,
   token: result.data.idToken
 };
-      const url = `https://easyshop-7095.onrender.com/api/v1/users/guser`;
+      const url = `https://wishandsurprise.com/backend/guser.php`;
       try {
         const response = await axios.post(url, rr, {
           headers: { 'Content-Type': 'application/json' },
         });
-      console.log("==============",response.data,"==========")
+
       // if (response.status === 200 || response.status === 201) {
         const { email, token, id, requests, userName } = response.data;
         const userData = {

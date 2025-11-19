@@ -9,15 +9,12 @@ import {
   Alert,
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
-
 const tileSizes = ['6x6', '8x8', '12x12'];
-
 const Magnetics = () => {
   const [imageUri, setImageUri] = useState(null);
   const [tileSize, setTileSize] = useState('6x6');
   const [caption, setCaption] = useState('');
   const [quantity, setQuantity] = useState(1);
-
   const pickImage = () => {
     ImagePicker.openPicker({
       width: 600,
@@ -55,10 +52,8 @@ const Magnetics = () => {
       caption,
       quantity,
     };
-
     Alert.alert('Saved!', JSON.stringify(order, null, 2));
   };
-
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>🧲 Magnetic Tile Creator</Text>
@@ -79,7 +74,6 @@ const Magnetics = () => {
           ) : null}
         </View>
       )}
-
       <Text style={styles.label}>Tile Size:</Text>
       <View style={styles.row}>
         {tileSizes.map((size) => (

@@ -27,7 +27,6 @@ const Gsignin = () => {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
   
       const result = await GoogleSignin.signIn();
-      console.log('Google Sign-In result:', result);
   
       const idToken = result?.idToken || result?.data?.idToken;
   
@@ -40,7 +39,6 @@ const Gsignin = () => {
       const userCredential = await auth().signInWithCredential(googleCredential);
   
       setUserInfo(userCredential.user);
-      console.log('User Info:', userCredential.user);
   
       // navigation.reset({
       //   index: 0,

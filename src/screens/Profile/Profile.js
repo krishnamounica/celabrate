@@ -14,6 +14,7 @@ import colors from '../../styles/colors';
 import ImagePicker from 'react-native-image-crop-picker';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import withSplashScreen from '../../navigation/withSplashScreen';
 
 const Profile = ({navigation}) => {
   const Data = [
@@ -144,7 +145,7 @@ const Profile = ({navigation}) => {
   );
 };
 
-export default Profile;
+export default withSplashScreen(Profile);
 
 
 const styles = StyleSheet.create({

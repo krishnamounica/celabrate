@@ -10,16 +10,16 @@ const RelationshipScreen = () => {
   useEffect(() => {
     fetchRelationships();
   }, []);
-  const BASE_URL = "https://easyshop-7095.onrender.com"; // or http://10.0.2.2:3000 if you're on Android emulator
+  const BASE_URL = "https://wishandsurprise.com/backend"; // or http://10.0.2.2:3000 if you're on Android emulator
 
   const fetchRelationships = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/api/v1/categories`);
+      const response = await axios.get(`${BASE_URL}/get-categories.php`);
       const filteredData = response.data
         .filter(item => item.block === "relation")
         .map(item => ({
           ...item,
-          image: item.image.startsWith('http') ? item.image : `${BASE_URL}${item.image}`,
+          image: `${BASE_URL}/${item.image}`,
         }));
       setRelationships(filteredData);
     } catch (error) {
@@ -44,18 +44,17 @@ const RelationshipScreen = () => {
         numColumns={3}
         contentContainerStyle={styles.listContainer}
         renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
-            <View style={styles.imageContainer}>
-               <TouchableOpacity 
-                          style={[styles.categoryBox, { backgroundColor: item?.color || "#ccc" }]}
-                          onPress={() => handleCategoryPress(item)}
-                        >
-            <Image source={{ uri: item.image }} style={styles.image} />
-            </TouchableOpacity>
-            </View>
-            <Text style={styles.label}>{item.name}</Text>
-          </View>
-        )}
+  <TouchableOpacity
+    style={styles.itemContainer}
+    onPress={() => handleCategoryPress(item)}
+  >
+    <View style={styles.imageContainer}>
+      <Image source={{ uri: item.image }} style={styles.image} />
+    </View>
+    <Text style={styles.label}>{item.name}</Text>
+  </TouchableOpacity>
+)}
+
       />}
     </View>
   );
@@ -68,7 +67,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#c8e6c9",
+    // borderColor: "#c8e6c9",
     elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -84,31 +83,34 @@ const styles = StyleSheet.create({
     color: "#2e7d32",
   },
   listContainer: {
-    paddingBottom: 20,
+    // paddingBottom: 20,
     alignItems: "center",
   },
   itemContainer: {
-    alignItems: "center",
-    margin: 10,
-  },
-  imageContainer: {
-    width: 90,
-    height: 90,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 45,
-    backgroundColor: "#F0F0F0",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  image: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
+  alignItems: "center",
+  margin: 10,
+  width: 100, // to align consistently in 3 columns
+},
+imageContainer: {
+  width: 90,
+  height: 90,
+  borderRadius: 45,
+  overflow: "hidden", // important to clip inner content
+  backgroundColor: "#fff", // optional clean background
+  justifyContent: "center",
+  alignItems: "center",
+  elevation: 3,
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+},
+image: {
+  width: "100%",
+  height: "100%",
+  resizeMode: "cover",
+},
+
   label: {
     marginTop: 5,
     fontSize: 16,

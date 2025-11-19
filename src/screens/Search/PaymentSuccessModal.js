@@ -6,26 +6,33 @@ const PaymentSuccessModal = ({ isOpen, amount, paymentId, paymentMode, createdAt
   const navigation = useNavigation();
   const [countdown, setCountdown] = useState(5);
 
-  useEffect(() => {
-    if (!isOpen) return;
+ useEffect(() => {
+  if (!isOpen) return;
 
-    // Announce for screen readers
-    AccessibilityInfo.announceForAccessibility(
-      `Payment successful. You will be redirected in ${countdown} seconds.`
-    );
+  AccessibilityInfo.announceForAccessibility(
+    `Payment successful. You will be redirected in ${countdown} seconds.`
+  );
 
-    const timer = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          navigation.navigate('MyBottomTab'); // or your home route
-        }
-        return prev - 1;
-      });
-    }, 1000);
+  const timer = setTimeout(() => {
+    navigation.navigate('MyBottomTab');
+  }, 5000);
 
-    return () => clearInterval(timer);
-  }, [isOpen, countdown, navigation]);
+  return () => clearTimeout(timer);
+}, [isOpen, navigation]);
+
+useEffect(() => {
+  if (!isOpen) return;
+
+  let counter = 5;
+  const interval = setInterval(() => {
+    counter--;
+    setCountdown(counter);
+    if (counter <= 0) clearInterval(interval);
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [isOpen]);
+
 
   if (!isOpen) return null;
 

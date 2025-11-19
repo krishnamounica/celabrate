@@ -44,7 +44,7 @@ const GiftRequestModal = ({ visible, onClose, product }) => {
 
       const payload = {
         ...formData,
-        productId: product._id,
+        productId: product.id,
         productName: product.name,
         productPrice: product.price,
         status: 'pending',
@@ -58,9 +58,8 @@ const GiftRequestModal = ({ visible, onClose, product }) => {
         remainingAmount: product.price,
         noOfPayments: 0,
       };
-
       const response = await axios.post(
-        'https://easyshop-7095.onrender.com/api/v1/giftrequests',
+        'https://wishandsurprise.com/backend/gift_submit.php',
         payload,
         {
           headers: {

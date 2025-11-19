@@ -17,6 +17,7 @@ import TShirt from './Tshirt';
 import MugCustomizer from './MugCustomizer';
 import KeychainCustomizer from './KeychainCustomizer';
 import LEDLightCustomizer from './LEDLightCustomizer';
+import TShirtCustomizer from '../../TShirtCustomizer';
 ;
 
 const offers = [
@@ -74,7 +75,7 @@ const BestOffers = () => {
           );
         }
         // once chosen, render that customizer
-        if (comboChoice === 'TShirt')  return <TShirt onBack={() => setComboChoice(null)} />;
+        if (comboChoice === 'TShirt')  return <TShirtCustomizer onBack={() => setComboChoice(null)} />;
         if (comboChoice === 'Mug')     return <MugCustomizer  onBack={() => setComboChoice(null)} />;
         if (comboChoice === 'Keychain')return <KeychainCustomizer onBack={() => setComboChoice(null)} />;
         return null;

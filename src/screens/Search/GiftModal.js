@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import RNPickerSelect from "react-native-picker-select";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const GiftModal = ({ visible, onClose, product }) => {
   const [formStep, setFormStep] = useState(1);
@@ -28,10 +29,32 @@ const GiftModal = ({ visible, onClose, product }) => {
     pincode: "",
   });
 
-  const handleInputChange = (key, value) => {
-    setFormData({ ...formData, [key]: value });
-  };
+  const [userData, setUserData] = useState({ name: '', phone: '', email: '' });
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const storedUserData = await AsyncStorage.getItem('userData');
+        if (storedUserData) {
+          const parsedData = JSON.parse(storedUserData);
+          setUserData({
+            name: parsedData.userName || parsedData.name || '',
+            phone: parsedData.phone || '',
+            email: parsedData.email || parsedData.user || '',
+            userId:parsedData.userId || parsedData.id,
+            token:parsedData.token,
+          });
+
+          if (parsedData.photo) {
+            setProfileImage({ uri: parsedData.photo });
+          }
+        }
+      } catch (error) {
+        console.log('Error fetching user data:', error);
+      }
+    };
+    fetchUserData();
+  }, []);
   const handleSubmit = async () => {
     try {
       const payload = {
@@ -46,28 +69,28 @@ const GiftModal = ({ visible, onClose, product }) => {
         district: formData.district,
         state: formData.state,
         pincode: formData.pincode,
-        productId: product._id,
+        productId: product.id,
         productName: product.name,
         productPrice: product.price,
         status: "pending",
         feedback: [],
         payment: false,
         sharable: false,
-        userName: "suresh", 
+        userName: userData.userId, 
         sharablelink: "",
         totalAmount: product.price,
         remainingAmount: product.price,
         noOfPayments: 0,
       };
+      
 
       const response = await axios.post(
-        "https://easyshop-7095.onrender.com/api/v1/giftrequests",
+        "https://wishandsurprise.com/backend/gift_submit.php",
         payload,
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2Nzk3MWQ0MmY2NmFjZDJkYjk5OGU1MTYiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3NDU4MDgzMDMsImV4cCI6MTc0NTg5NDcwM30.kMhdnSdQ2-IFaldXj0n3WJobSP6uHmfWuRhheQqYDA0",
+           Authorization: `Bearer ${userData.token}`,
           },
         }
       );
@@ -131,6 +154,8 @@ const GiftModal = ({ visible, onClose, product }) => {
                   { label: "Sister", value: "Sister" },
                   { label: "Mother", value: "Mother" },
                   { label: "Father", value: "Father" },
+                   {label:"Husband", value:"Husband"},
+                  {label:"Wife", value: "Wife"},
                 ]}
                 placeholder={{ label: "Select a relation", value: null }}
               />
@@ -144,6 +169,7 @@ const GiftModal = ({ visible, onClose, product }) => {
                   { label: "Birthday", value: "Birthday" },
                   { label: "Anniversary", value: "Anniversary" },
                   { label: "Wedding", value: "Wedding" },
+                 
                   { label: "Graduation", value: "Graduation" },
                   { label: "Festival", value: "Festival" },
                 ]}

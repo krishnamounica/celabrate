@@ -1,220 +1,144 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView,
-  Alert, Modal, FlatList, ActivityIndicator
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
+import AddressModal from './AddressModal';
+// import AddressModal from './AddressModal'; // If you're using it for adding a new address
 
-const BillingAddressScreen = ({ route }) => {
+const BillingAddressScreen = ({ navigation, route }) => {
   const { product } = route.params;
-  const navigation = useNavigation();
-
   const [billingData, setBillingData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [newAddress, setNewAddress] = useState({
-    fullName: '',
-    street: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    country: '',
-  });
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
- const fetchBillingAddresses = async () => {
-  try {
-    const userDataString = await AsyncStorage.getItem('userData');
-    const userData = JSON.parse(userDataString);
-    const token = userData.token;
-    const userId = userData.id || userData._id;
-    console.log('Token:', token, 'UserID:', userId);
-    const response = await axios.get(
-  `https://easyshop-7095.onrender.com/api/v1/users/address/${userId}`,
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
-console.log(response.data, "====response data=====");
-// const payments = Array.isArray(response.data) ? response.data : [];
-// setBillingData(payments.map(p => p.address).filter(Boolean));
-const payments = Array.isArray(response.data) ? response.data : [];
-const allAddresses = payments.map(p => p.address).filter(Boolean);
-const uniqueAddresses = removeDuplicateAddresses(allAddresses);
-setBillingData(uniqueAddresses);
-  } catch (error) {
-    console.error(
-      'Failed to fetch billing addresses:',
-      error.response?.data || error.message
-    );
-    setBillingData([]);
-  } finally {
-    setLoading(false);
-  }
-};
-const removeDuplicateAddresses = (addresses) => {
-  const seen = new Set();
-  return addresses.filter((addr) => {
-    const key = `${addr.fullName}|${addr.street}|${addr.city}|${addr.state}|${addr.postalCode}|${addr.country}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-};
   useEffect(() => {
     fetchBillingAddresses();
   }, []);
-  const handleSelectAddress = (selectedAddress) => {
-    navigation.navigate('RazorpayPayment', {
-      product,
-      billingAddress: selectedAddress,
-    });
-  };
-  const handleAddNewAddress = () => {
-    const { fullName, street, city } = newAddress;
-    if (fullName && street && city) {
-      setModalVisible(false);
-      navigation.navigate('RazorpayPayment', {
-        product,
-        billingAddress: newAddress,
-      });
-    } else {
-      Alert.alert('Validation', 'Please fill all required fields');
+
+  const fetchBillingAddresses = async () => {
+    try {
+      const userDataString = await AsyncStorage.getItem('userData');
+      const userData = JSON.parse(userDataString);
+      const token = userData.token;
+      const userId = userData.id || userData._id;
+
+      const response = await axios.post(
+        `https://wishandsurprise.com/backend/get-addresses.php?userId=${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const addresses = Array.isArray(response.data.addresses)
+        ? response.data.addresses.map(a => a.full_address).filter(Boolean)
+        : [];
+
+      const unique = [...new Set(addresses)];
+      setBillingData(unique);
+    } catch (error) {
+      console.error('Failed to fetch billing addresses:', error.response?.data || error.message);
+      setBillingData([]);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleSelectAddress = (selectedFullAddress) => {
+    navigation.navigate('RazorpayPayment', {
+      product,
+      billingAddress: selectedFullAddress, // Pass full string address
+    });
+  };
+
+  const handleAddNewAddress = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleAddressAdded = (newAddress) => {
+    setIsModalVisible(false);
+    setBillingData(prev => [...new Set([newAddress, ...prev])]);
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Select Existing Address</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Select Billing Address</Text>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#28a745" />
+        <ActivityIndicator size="large" color="orange" />
       ) : billingData.length === 0 ? (
-        <Text style={{ color: '#777' }}>No saved addresses found.</Text>
+        <Text style={styles.noAddressText}>No billing addresses found.</Text>
       ) : (
         <FlatList
           data={billingData}
-          keyExtractor={(_, index) => index.toString()}
+          keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.card} onPress={() => handleSelectAddress(item)}>
-              <Text style={styles.name}>{item.fullName}</Text>
-              <Text style={styles.addressText}>
-                {item.street}, {item.city}, {item.state} - {item.postalCode}, {item.country}
-              </Text>
+              <Text style={styles.addressText}>{item}</Text>
             </TouchableOpacity>
           )}
         />
       )}
 
-      <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+      <TouchableOpacity style={styles.addButton} onPress={handleAddNewAddress}>
         <Text style={styles.addButtonText}>+ Add New Address</Text>
       </TouchableOpacity>
 
-      {/* Modal for New Address Input */}
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>Enter New Address</Text>
-            <TextInput placeholder="Full Name" style={styles.input} value={newAddress.fullName} onChangeText={(text) => setNewAddress({ ...newAddress, fullName: text })} />
-            <TextInput placeholder="Street Address" style={styles.input} value={newAddress.street} onChangeText={(text) => setNewAddress({ ...newAddress, street: text })} />
-            <TextInput placeholder="City" style={styles.input} value={newAddress.city} onChangeText={(text) => setNewAddress({ ...newAddress, city: text })} />
-            <TextInput placeholder="State" style={styles.input} value={newAddress.state} onChangeText={(text) => setNewAddress({ ...newAddress, state: text })} />
-            <TextInput placeholder="Postal Code" keyboardType="numeric" style={styles.input} value={newAddress.postalCode} onChangeText={(text) => setNewAddress({ ...newAddress, postalCode: text })} />
-            <TextInput placeholder="Country" style={styles.input} value={newAddress.country} onChangeText={(text) => setNewAddress({ ...newAddress, country: text })} />
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.button} onPress={handleAddNewAddress}>
-                <Text style={styles.buttonText}>Proceed</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.button, { backgroundColor: '#ccc' }]} onPress={() => setModalVisible(false)}>
-                <Text style={[styles.buttonText, { color: '#000' }]}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+      <Modal visible={isModalVisible} animationType="slide">
+        <AddressModal
+          onClose={() => setIsModalVisible(false)}
+          onSave={handleAddressAdded}
+        />
       </Modal>
-    </ScrollView>
+    </View>
   );
 };
 
-export default BillingAddressScreen;
-
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flex: 1,
+    padding: 16,
     backgroundColor: '#fff',
-    flexGrow: 1,
   },
-  header: {
-    fontSize: 20,
+  title: {
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 16,
+    color: '#333',
   },
   card: {
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    backgroundColor: '#f2f2f2',
+    padding: 16,
     borderRadius: 8,
-    marginBottom: 10,
-  },
-  name: {
-    fontWeight: 'bold',
-    fontSize: 16,
+    marginBottom: 12,
   },
   addressText: {
-    color: '#555',
+    fontSize: 16,
+    color: '#333',
+  },
+  noAddressText: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 20,
   },
   addButton: {
-    backgroundColor: '#28a745',
-    paddingVertical: 12,
+    backgroundColor: 'orange',
+    padding: 16,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 16,
   },
   addButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginVertical: 6,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 48,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: '#00000099',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 12,
-  },
-  modalHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  button: {
-    flex: 1,
-    backgroundColor: '#28a745',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginHorizontal: 5,
-  },
-  buttonText: {
-    color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });
+
+export default BillingAddressScreen;

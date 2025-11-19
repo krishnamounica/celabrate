@@ -88,7 +88,6 @@ const Search = () => {
               key={index}
               style={styles.suggestionItem}
               onPress={() => {
-                console.log('Navigating to ProductDetails with:', item);
                 if (!item) {
                   Alert.alert('Error', 'Product data is missing.');
                   return;

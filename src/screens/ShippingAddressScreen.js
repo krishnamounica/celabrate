@@ -13,10 +13,10 @@ import { moderateScale, scale, verticalScale } from '../styles/scaling';
 import colors from '../styles/colors';
 
 const ShippingAddressScreen = () => {
-  const [billingData, setBillingData] = useState([]);
+  const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchBillingAddresses = async () => {
+  const fetchAddresses = async () => {
     try {
       const userDataString = await AsyncStorage.getItem('userData');
       const userData = JSON.parse(userDataString);
@@ -24,58 +24,47 @@ const ShippingAddressScreen = () => {
       const userId = userData.id || userData._id;
 
       const response = await axios.get(
-        `https://easyshop-7095.onrender.com/api/v1/users/address/${userId}`,
+        `https://wishandsurprise.com/backend/get-addresses.php?userId=${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-     const payments = Array.isArray(response.data) ? response.data : [];
-const allAddresses = payments.map(p => p.address).filter(Boolean);
-const uniqueAddresses = removeDuplicateAddresses(allAddresses);
-setBillingData(uniqueAddresses);
+
+      const raw = Array.isArray(response.data.addresses) ? response.data.addresses : [];
+      const allAddresses = raw.map(item => item.full_address).filter(Boolean);
+      const unique = [...new Set(allAddresses)];
+      setAddresses(unique);
     } catch (error) {
-      console.error('Failed to fetch billing addresses:', error.response?.data || error.message);
-      setBillingData([]);
+      console.error('Failed to fetch addresses:', error.response?.data || error.message);
+      setAddresses([]);
     } finally {
       setLoading(false);
     }
   };
-const removeDuplicateAddresses = (addresses) => {
-  const seen = new Set();
-  return addresses.filter((addr) => {
-    const key = `${addr.fullName}|${addr.street}|${addr.city}|${addr.state}|${addr.postalCode}|${addr.country}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-};
+
   useEffect(() => {
-    fetchBillingAddresses();
+    fetchAddresses();
   }, []);
 
   const renderCard = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.cardText}>Name: {item.fullName}</Text>
-      <Text style={styles.cardText}>Phone: {item.phone}</Text>
-      <Text style={styles.cardText}>Street: {item.street}</Text>
-      <Text style={styles.cardText}>City: {item.city}</Text>
-      <Text style={styles.cardText}>State: {item.state}</Text>
-      <Text style={styles.cardText}>Pincode: {item.postalCode}</Text>
-    </View>
-  );
+  <View style={styles.card}>
+  <Text style={styles.cardText}>{item}</Text> /
+
+  </View>
+);
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Shipping Addresses</Text>
       {loading ? (
         <ActivityIndicator size="large" color={colors.primary} />
-      ) : billingData.length === 0 ? (
+      ) : addresses.length === 0 ? (
         <Text style={styles.noDataText}>No addresses found.</Text>
       ) : (
         <FlatList
-          data={billingData}
+          data={addresses}
           keyExtractor={(item, index) => index.toString()}
           renderItem={renderCard}
           contentContainerStyle={styles.list}

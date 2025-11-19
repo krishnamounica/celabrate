@@ -1,119 +1,110 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Button, Alert } from 'react-native';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import moment from 'moment';
 
-const InvoiceScreen = ({ route }) => {
+const InvoiceScreen = ({ route ,navigation }) => {
   const { paymentDetails, product, billingAddress } = route.params;
-  const navigation = useNavigation();
 
-  const [invoiceNumber, setInvoiceNumber] = useState(null);
+
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [pdfPath, setPdfPath] = useState('');
 
   const gstRate = 0.18;
   const gstAmount = (paymentDetails.amount * gstRate) / (1 + gstRate);
   const baseAmount = paymentDetails.amount - gstAmount;
 
   useEffect(() => {
+    const generateInvoiceNumber = () => {
+      const random = Math.floor(100000 + Math.random() * 900000);
+      setInvoiceNumber(`INV-${random}`);
+    };
     generateInvoiceNumber();
   }, []);
 
-  const generateInvoiceNumber = async () => {
-    try {
-      const current = await AsyncStorage.getItem('invoiceCounter');
-      const nextNumber = current ? parseInt(current) + 1 : 1001;
-      await AsyncStorage.setItem('invoiceCounter', nextNumber.toString());
-      setInvoiceNumber(nextNumber);
-    } catch (err) {
-      console.error('Failed to generate invoice number', err);
-    }
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.navigate('OrderHistory'); 
+    }, 5000);
 
-  const generatePDF = async () => {
+    return () => clearTimeout(timer); 
+  }, []);
+
+  const createPDF = async () => {
     const htmlContent = `
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial; padding: 20px; }
-            .header { text-align: center; }
-            .box { border: 1px solid #ccc; padding: 20px; border-radius: 10px; margin-top: 20px; }
-            .row { display: flex; justify-content: space-between; margin: 6px 0; }
-            .info-label { font-weight: bold; }
-            .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #888; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>Wish & Surprise</h1>
-            <p><strong>Invoice #${invoiceNumber}</strong></p>
-          </div>
-
-          <div class="box">
-            <h3>Billing Details</h3>
-            <p>${billingAddress.fullName}</p>
-            <p>${billingAddress.street}, ${billingAddress.city}, ${billingAddress.state}, ${billingAddress.postalCode}</p>
-            <p>Country: ${billingAddress.country}</p>
-          </div>
-
-          <div class="box">
-            <h3>Payment Details</h3>
-            <div class="row"><span class="info-label">Product:</span><span>${product.name}</span></div>
-            <div class="row"><span class="info-label">Base Amount:</span><span>₹${baseAmount.toFixed(2)}</span></div>
-            <div class="row"><span class="info-label">GST (18%):</span><span>₹${gstAmount.toFixed(2)}</span></div>
-            <div class="row"><span class="info-label">Total Amount Paid:</span><span>₹${paymentDetails.amount.toFixed(2)}</span></div>
-            <div class="row"><span class="info-label">Payment Mode:</span><span>${paymentDetails.paymentMode}</span></div>
-            <div class="row"><span class="info-label">Payment ID:</span><span>${paymentDetails.paymentId}</span></div>
-            <div class="row"><span class="info-label">Date:</span><span>${new Date(paymentDetails.createdAt).toLocaleString()}</span></div>
-          </div>
-
-          <div class="box">
-            <h3>GST & Compliance</h3>
-            <div class="row"><span class="info-label">GSTIN:</span><span>29ABCDE1234F2Z5</span></div>
-            <div class="row"><span class="info-label">HSN/SAC:</span><span>998729</span></div>
-          </div>
-
-          <div class="footer">
-            Thank you for shopping with us!<br />
-            For queries: support@wishandsurprise.com
-          </div>
-        </body>
-      </html>
+      <h1 style="text-align:center">Wish & Surprise</h1>
+      <h3>Invoice Number: ${invoiceNumber}</h3>
+      <p><strong>Date:</strong> ${moment(paymentDetails.createdAt).format('DD-MM-YYYY')}</p>
+      <hr/>
+      <h4>Billing Address:</h4>
+      <p>
+        ${billingAddress}<br/>
+        
+      </p>
+      <hr/>
+      <h4>Product:</h4>
+      <p>${product.name} (Qty: ${product.quantity || 1})</p>
+      <hr/>
+      <h4>Payment Details:</h4>
+      <p>Base Amount: ₹${baseAmount.toFixed(2)}</p>
+      <p>GST (18%): ₹${gstAmount.toFixed(2)}</p>
+      <p>Delivery Charges: ₹${paymentDetails.deliveryCharges || 0}</p>
+      <p>Transaction Charges: ₹${paymentDetails.transactionCharges || 0}</p>
+      <p><strong>Total Paid:</strong> ₹${paymentDetails.amount.toFixed(2)}</p>
+      <p>Payment Mode: ${paymentDetails.paymentMode}</p>
     `;
 
-    try {
-      const file = await RNHTMLtoPDF.convert({
-        html: htmlContent,
-        fileName: `Invoice_${invoiceNumber}`,
-        base64: false,
-      });
+    const options = {
+      html: htmlContent,
+      fileName: invoiceNumber,
+      directory: 'Documents',
+    };
 
+    const file = await RNHTMLtoPDF.convert(options);
+    setPdfPath(file.filePath);
+    Alert.alert('PDF Generated', 'Invoice PDF created successfully!');
+  };
+
+  const sharePDF = async () => {
+    if (!pdfPath) return Alert.alert('No PDF', 'Please generate PDF first.');
+
+    try {
       await Share.open({
-        url: `file://${file.filePath}`,
+        title: 'Share Invoice',
+        url: `file://${pdfPath}`,
         type: 'application/pdf',
-        failOnCancel: false,
       });
     } catch (error) {
-      Alert.alert('Error', 'Could not generate or share PDF');
-      console.error(error);
+      console.warn('Sharing failed:', error);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Invoice #{invoiceNumber}</Text>
-      <Text>Product: {product.name}</Text>
-      <Text>Total Paid: ₹{paymentDetails.amount}</Text>
-      <Text>Base: ₹{baseAmount.toFixed(2)} | GST: ₹{gstAmount.toFixed(2)}</Text>
-      <Text>Mode: {paymentDetails.paymentMode}</Text>
-      <Text>Date: {new Date(paymentDetails.createdAt).toLocaleString()}</Text>
+      <Text style={styles.heading}>Invoice Preview</Text>
+      <Text style={styles.label}>Invoice #: {invoiceNumber}</Text>
+      <Text style={styles.label}>Date: {moment(paymentDetails.createdAt).format('DD MMM YYYY')}</Text>
 
-      <View style={styles.buttonWrapper}>
-        <Button title="Download / Share Invoice" onPress={generatePDF} />
-      </View>
+      <Text style={styles.section}>Billing Address</Text>
+      <Text>{billingAddress}</Text>
+      {/* <Text>{billingAddress.addressLine1}</Text>
+      <Text>{billingAddress.city}, {billingAddress.state} - {billingAddress.pincode}</Text>
+      <Text>Phone: {billingAddress.phone}</Text> */}
 
-      <View style={styles.buttonWrapper}>
-        <Button title="Go to Home" color="#28a745" onPress={() => navigation.navigate('MyBottomTab')} />
+      <Text style={styles.section}>Product</Text>
+      <Text>{product.name} (Qty: {product.quantity || 1})</Text>
+
+      <Text style={styles.section}>Amount Summary</Text>
+      <Text>Base Amount: ₹{baseAmount.toFixed(2)}</Text>
+      <Text>GST (18%): ₹{gstAmount.toFixed(2)}</Text>
+      <Text>Delivery Charges: ₹{paymentDetails.deliveryCharges || 0}</Text>
+      <Text>Transaction Charges: ₹{paymentDetails.transactionCharges || 0}</Text>
+      <Text style={styles.total}>Total Paid: ₹{paymentDetails.amount.toFixed(2)}</Text>
+
+      <View style={styles.buttons}>
+        <Button title="Generate PDF" onPress={createPDF} />
+        <Button title="Share Invoice" onPress={sharePDF} />
       </View>
     </View>
   );
@@ -122,15 +113,10 @@ const InvoiceScreen = ({ route }) => {
 export default InvoiceScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
-  buttonWrapper: {
-    marginTop: 20,
-  },
+  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  heading: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
+  label: { fontSize: 16 },
+  section: { marginTop: 20, fontSize: 18, fontWeight: '600' },
+  total: { marginTop: 10, fontWeight: 'bold', fontSize: 18, color: '#1e90ff' },
+  buttons: { marginTop: 30, gap: 10 },
 });

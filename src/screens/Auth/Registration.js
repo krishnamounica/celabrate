@@ -6,9 +6,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveUserData } from '../../redux/store';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const Registration = ({ navigation }) => {
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '',dob: '',
+  referral: '',
+ phoneno: '' });
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [signingUp, setSigningUp] = useState(false);
   const dispatch = useDispatch();
@@ -17,27 +21,37 @@ const Registration = ({ navigation }) => {
     setFormData({ ...formData, [key]: value });
   };
 
-  const handleRegister = async () => {
-    setLoading(true);
-    const url = `https://easyshop-7095.onrender.com/api/v1/users/register`;
-    try {
-      const response = await axios.post(url, formData, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+const handleRegister = async () => {
+  setLoading(true);
 
-      if (response.status === 200 || response.status === 201) {
-        Alert.alert('Success', 'Registered successfully!');
-        await AsyncStorage.setItem('userData', JSON.stringify(response.data));
-        dispatch(saveUserData(response.data));
-        navigation.replace('MyBottomTab');
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', error.response?.data?.message || 'Something went wrong');
-    } finally {
-      setLoading(false);
+  const url = `https://wishandsurprise.com/backend/register.php`;
+
+  try {
+    const response = await axios.post(url, formData, {
+      headers: { 'Content-Type': 'application/json' },
+   
+    });
+
+
+    if (response.status === 200 && response.data.status) {
+      Alert.alert('Success', 'Registered successfully!');
+      await AsyncStorage.setItem('userData', JSON.stringify(response.data));
+      dispatch(saveUserData(response.data));
+      navigation.replace('MyBottomTab');
+    } else {
+      Alert.alert('Error', response.data.message || 'Registration failed');
     }
-  };
+
+  } catch (error) {
+    console.error("Registration error:", error?.response?.data || error.message);
+    Alert.alert('Error', error?.response?.data?.message || 'Something went wrong');
+  } finally {
+    console.log("Ending loading");
+    setLoading(false);
+  }
+};
+
+
 
   const handleGoogleSignUp = async () => {
     if (signingUp) return;
@@ -48,7 +62,6 @@ const Registration = ({ navigation }) => {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
       const result = await GoogleSignin.signIn();
-      console.log('Google Sign-In result:', result);
 
       const idToken = result?.idToken || result?.data?.idToken;
 
@@ -105,7 +118,7 @@ const Registration = ({ navigation }) => {
           placeholder="Email"
            placeholderTextColor="gray"
           value={formData.email}
-          onChangeText={(text) => handleChange('email', text)}cv
+          onChangeText={(text) => handleChange('email', text)}
           keyboardType="email-address"
         />
         <TextInput
@@ -116,6 +129,50 @@ const Registration = ({ navigation }) => {
           onChangeText={(text) => handleChange('password', text)}
           secureTextEntry
         />
+        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+        <TextInput
+          style={styles.input}
+          placeholder="Date of Birth (YYYY-MM-DD)"
+          placeholderTextColor="gray"
+          value={formData.dob}
+          editable={false}
+          pointerEvents="none"
+        />
+      </TouchableOpacity>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={formData.dob ? new Date(formData.dob) : new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          maximumDate={new Date()}
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
+            if (selectedDate) {
+              const isoDate = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
+              handleChange('dob', isoDate);
+            }
+          }}
+        />
+      )}
+<TextInput
+type="number"
+style={styles.input}
+placeholder='phone no'
+value={formData.phoneno}
+onChangeText={(text) => handleChange('phoneno', text)}
+keyboardType="numeric"
+maxLength={10} 
+/>
+<TextInput
+  style={styles.input}
+  placeholder="Referral Code (optional)"
+  placeholderTextColor="gray"
+ value={formData.referral}
+onChangeText={(text) => handleChange('referral', text)}
+
+/>
+
 
         <Button title="Register with Email" onPress={handleRegister} />
 

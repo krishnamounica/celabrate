@@ -16,24 +16,27 @@ import BillingAddressScreen from '../screens/BillingAddressScreen';
 import ShippingAddressScreen from '../screens/ShippingAddressScreen';
 import KeyChains from '../screens/KeyChains';
 import Resin from '../screens/Resin';
+import NotificationsScreen from '../screens/Home/NotificationsScreen';
 
 const Stack = createNativeStackNavigator();
 
 const MainStack = () => {
   return (
     <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName="AuthLoading">
-      <Stack.Screen name="AuthLoading" component={AuthLoading} />
-      <Stack.Screen name="GiftDetails" component={GiftDetailsScreen} />
-    <Stack.Screen name="Login" component={Login} />
-    <Stack.Screen name="Registration" component={Registration} />
-    <Stack.Screen name="Invoice" component={InvoiceScreen} />
+   <Stack.Screen name="AuthLoading" component={AuthLoading} />
+   <Stack.Screen name="GiftDetails" component={GiftDetailsScreen} />
+   <Stack.Screen name="Login" component={Login} />
+   <Stack.Screen name="Registration" component={Registration} />
+   <Stack.Screen name="Invoice" component={InvoiceScreen} />
     <Stack.Screen name="Request" component={GiftOrderCard} />
+     <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="MyBottomTab" component={MyBottomTab} />
     <Stack.Screen name="RazorpayPayment" component={RazorpayPaymentButton} />
 <Stack.Screen name="BillingAddress" component={BillingAddressScreen} />
 <Stack.Screen name="ShippingAddress" component={ShippingAddressScreen} />
 <Stack.Screen name="KeyChain" component={KeyChains} />
 <Stack.Screen name="resin" component={Resin} />
+
 
 
 

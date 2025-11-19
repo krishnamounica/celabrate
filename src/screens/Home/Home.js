@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, ScrollView, View } from 'react-native';
+import { SafeAreaView, StyleSheet, ScrollView, View, Text } from 'react-native';
 import React from 'react';
 import ProductListScreen from '../ProductListScreen';
 import BestOffers from '../BestOffers';
@@ -8,6 +8,10 @@ import Banner from './Banner';
 import Header from './Header';
 import CelebrationsCalendar from '../CelebrationsCalendar';
 import Gsignin from '../Gsignin';
+import TShirtCustomizer from '../../../TShirtCustomizer';
+import withSplashScreen from '../../navigation/withSplashScreen';
+import GiftPacksGrid from '../../navigation/GiftPacksGrid';
+
 
 const Home = () => {
   return (
@@ -24,8 +28,12 @@ const Home = () => {
       </View>
 
        <View style={styles.section}>
-          <BestOffers />
+        <GiftPacksGrid />
+          {/* <BestOffers /> */}
         </View>
+        {/* <View style={styles.section}>
+          <TShirtCustomizer />
+        </View> */}
 
         <View style={styles.section}>
           <RelationshipScreen />
@@ -43,7 +51,7 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default withSplashScreen(Home);
 
 const styles = StyleSheet.create({
   container: {

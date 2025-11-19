@@ -15,16 +15,16 @@ const CelebrationsCalendar = () => {
     useEffect(() => {
       fetchRelationships();
     }, []);
-    const BASE_URL = "https://easyshop-7095.onrender.com"; // or http://10.0.2.2:3000 if you're on Android emulator
+    const BASE_URL = "https://wishandsurprise.com/backend";
   
     const fetchRelationships = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/v1/categories`);
+        const response = await axios.get(`${BASE_URL}/get-categories.php`);
         const filteredData = response.data
           .filter(item => item.block === "dates")
           .map(item => ({
             ...item,
-            image: item.image.startsWith('http') ? item.image : `${BASE_URL}${item.image}`,
+            image: `${BASE_URL}/${item.image}`,
           }));
         setRelationships(filteredData);
       } catch (error) {

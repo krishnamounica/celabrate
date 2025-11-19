@@ -9,6 +9,10 @@ import CategoryList from '../screens/Categories/Categories';
 import RequestsScreen from '../screens/Search/RequestsScreen';
 import GiftOrderCard from '../screens/GiftOrderCard';
 import GiftDetailsScreen from '../screens/GiftDetailsScreen';
+import InvitesScreen from '../screens/InvitesScreen';
+import GroupsScreen from '../screens/GroupsScreen';
+import withSplashScreen from './withSplashScreen';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -43,6 +47,12 @@ const MyBottomTab = () => {
             case 'Categories':
               iconName = focused ? 'grid' : 'grid-outline';
               break;
+              case 'Invites':
+          iconName = focused ? 'mail' : 'mail-outline';
+          break;
+        case 'Groups':
+          iconName = focused ? 'people' : 'people-outline';
+          break;
             case 'Cart':
               iconName = focused ? 'cart' : 'cart-outline';
               break;
@@ -60,10 +70,12 @@ const MyBottomTab = () => {
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="Request" component={GiftOrderCard} />
       <Tab.Screen name="Categories" component={CategoryList} />
+      <Tab.Screen name="Invites" component={InvitesScreen} />
+  {/* <Tab.Screen name="Groups" component={GroupsScreen} /> */}
       {/* <Tab.Screen name="Cart" component={Cart} /> */}
       <Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );
 };
 
-export default MyBottomTab;
+export default withSplashScreen(MyBottomTab);

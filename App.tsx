@@ -4,6 +4,7 @@ import { store } from './src/redux/store';  // Ensure the store is correctly imp
 import { NavigationContainer } from '@react-navigation/native';
 import Route from './src/navigation/Route'; // Your main navigation route file
 import { Linking } from 'react-native';
+import useFirebaseNotifications from './src/screens/useFirebaseNotifications';
 
 // Set up deep linking configuration
 const linking = {
@@ -19,7 +20,10 @@ const linking = {
 };
 
 
+
 const App = () => {
+  useFirebaseNotifications();
+  
   return (
     <Provider store={store}>
       {/* Wrap the app with NavigationContainer and pass the linking configuration */}

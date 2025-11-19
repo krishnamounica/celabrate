@@ -49,7 +49,6 @@ const RequestsScreen = ({ route }) => {
     );
   };
   const displayRequests = updatedRequests || storedRequests || reduxRequests;
-// console.log(displayRequests,"====displayRequests====")
   return (
     <FlatList
       data={displayRequests}
@@ -60,7 +59,6 @@ const RequestsScreen = ({ route }) => {
       renderItem={({ item, index }) => (
        
         <View style={styles.requestItem}>
-          {/* { console.log("=====item",item,index)} */}
           <Text style={styles.descriptionText}>
             {item.userName} has created a request for {item.name} to send a surprise gift "{item.productName}" costing ₹{item.productPrice} for his {item.relation}'s birthday. The delivery is planned for Pincode {item.pincode}, {item.state}, and the contact phone number provided is {item.phone}. The celebration is planned for {new Date(item.date).toLocaleDateString()}.
           </Text>

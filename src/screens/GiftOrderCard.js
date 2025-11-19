@@ -9,7 +9,7 @@ import RazorpayCheckout from 'react-native-razorpay';
 import { Modal, TextInput } from 'react-native';
 import PaymentSuccessModal from './Search/PaymentSuccessModal';
 import { useNavigation } from "@react-navigation/native";
-
+import withSplashScreen from '../navigation/withSplashScreen';
 
 const GiftOrderCard = () => {
   const [orders, setOrders] = useState(null);
@@ -32,7 +32,6 @@ const [showModal, setShowModal] = useState(false);
   };
    const navigation = useNavigation();
   const initiateRazorpay = async (id) => {
-    console.log(id,"=========",selectedOrder)
     if (
       !paymentAmount ||
       isNaN(paymentAmount) ||
@@ -50,7 +49,7 @@ const [showModal, setShowModal] = useState(false);
       const userData = JSON.parse(userDataString);
       const userId = userData.id;
   
-      const orderResponse = await fetch('https://easyshop-7095.onrender.com/api/v1/users/create-order', {
+      const orderResponse = await fetch('https://wishandsurprise.com/backend/create-order.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,33 +66,43 @@ const [showModal, setShowModal] = useState(false);
       const options = {
         description: `Gift Payment for ${selectedOrder.productName}`,
         currency: 'INR',
-        key: 'rzp_test_Zr4AoaaUCDwWjy',
+        key: 'rzp_live_yOvVxv8Djhx8ds',
         amount: amountInPaise,
         name: 'Wish and Surprise',
         order_id: orderData.orderId,
         theme: { color: '#2980b9' },
       };
-  
       RazorpayCheckout.open(options)
         .then(async (data) => {
           // Step 3: Save payment to backend
-          const saveResponse = await fetch('https://easyshop-7095.onrender.com/api/v1/users/save-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              razorpay_payment_id: data.razorpay_payment_id,
-              razorpay_order_id: data.razorpay_order_id,
-              razorpay_signature: data.razorpay_signature,
-              productId: selectedOrder._id,
-           
-              amount: parseFloat(paymentAmount),
-              userId: userId,
-            }),
-          });
-  
-          const result = await saveResponse.json();
-  
-  await fetch(`https://easyshop-7095.onrender.com/api/v1/giftrequests/update/${selectedOrder._id}`, {
+      
+          const response = await fetch('https://wishandsurprise.com/backend/save-payment.php', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${userData.token}`
+  },
+  body: JSON.stringify({
+    razorpay_payment_id: data.razorpay_payment_id,
+    razorpay_order_id: data.razorpay_order_id,
+    razorpay_signature: data.razorpay_signature,
+    productId: selectedOrder.id,
+    amount: amountInPaise,
+    userId: userId
+  }),
+});
+const text = await response.text();
+try {
+  const result = JSON.parse(text);
+
+  if (result.success) {
+  } else {
+    alert("Something went wrong: " + result.message);
+  }
+} catch (e) {
+  alert("Something went wrong. Invalid response from server.");
+}
+  await fetch(`https://wishandsurprise.com/backend/update-gift.php?id=${selectedOrder.id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -110,9 +119,9 @@ const [showModal, setShowModal] = useState(false);
           setShowModal(true);
           setPaymentDetails({
             amount: parseFloat(paymentAmount),
-            paymentId: result.paymentId || data.razorpay_payment_id,
+            paymentId:  data.razorpay_payment_id,
             paymentMode: 'Netbanking',
-            createdAt: result.createdAt || new Date().toISOString(),
+            createdAt:  new Date().toISOString(),
           });
   
           fetchOrders();
@@ -132,7 +141,7 @@ const [showModal, setShowModal] = useState(false);
     // navigation.navigate('MyBottomTab')
   };
   const handleShare = (order) => {
-    const shareLink = order.sharablelink || `http://wishandsurprise.com/gift/${order._id}`;
+    const shareLink = order.sharablelink || `http://wishandsurprise.com/gift/${order.id}`;
     const message = `🎁 Gift Idea for ${order.name}'s ${order.occasion}!\n\n` +
       `🛍️ Product: ${order.productName}\n💰 Price: ₹${order.productPrice}\n\n` +
       `👉 View More: ${shareLink}`;
@@ -149,21 +158,21 @@ const [showModal, setShowModal] = useState(false);
   };
 
   const fetchOrders = async () => {
-    console.log("==============gifts========")
+   
     try {
       const userDataString = await AsyncStorage.getItem('userData');
       const userData = JSON.parse(userDataString);
       const userId = userData.id;
       const token = userData.token;
-      const response = await axios.get('https://easyshop-7095.onrender.com/api/v1/giftrequests', {
-        params: { userName: userId },
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.post(`https://wishandsurprise.com/backend/get_user_requests.php?userId=${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data?.length > 0) {
         const sortedData = response.data.sort(
           (a, b) => new Date(b.date) - new Date(a.date)
         );
         setOrders(sortedData);
+        
       } else {
         Alert.alert('No orders found');
       }
@@ -230,31 +239,37 @@ const [showModal, setShowModal] = useState(false);
               <Text style={styles.buttonText}>Share</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button]}
-              disabled={!order.payment  }
-              onPress={() =>  handlePay(order)}
-            >
+  style={[styles.button, !order.payment && styles.disabledButton]}
+  disabled={!order.payment}
+  onPress={() => {
+    if (order.payment) {
+      handlePay(order);
+    }
+  }}
+>
+
               <Icon name="cash-refund" size={18} color="#fff" />
               <Text style={styles.buttonText}>Pay</Text>
             </TouchableOpacity>
             <TouchableOpacity
     style={styles.button}
-    onPress={() => navigation.navigate('GiftDetails', { id: order._id })}
+    onPress={() => navigation.navigate('GiftDetails', { id: order.id })}
   >
     <Icon name="information-outline" size={18} color="#fff" />
     <Text style={styles.buttonText}>Details</Text>
   </TouchableOpacity>
           </View>
           {!order.sharable && (
-            <Text style={styles.disabledNote}>Sharing is not allowed for this order.</Text>
+            <Text style={styles.disabledNote}>Sharing is not allowed for this request.</Text>
           )}
           {!order.payment &&  (
-            <Text style={styles.disabledNote}>This order has already been paid for.</Text>
+            <Text style={styles.disabledNote}>Payment is not allowed for this request.</Text>
           )}
         </View>
       ))}
+      
           <PaymentSuccessModal
-  isOpen={showModal}
+  isOpen={ showModal}
   amount={paymentDetails.amount}
   paymentId={paymentDetails.paymentId}
   paymentMode={paymentDetails.paymentMode}
@@ -281,7 +296,7 @@ const [showModal, setShowModal] = useState(false);
                 style={styles.input}
               />
               <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton} onPress={() => initiateRazorpay(selectedOrder._id)}>
+              <TouchableOpacity style={styles.modalButton} onPress={() => initiateRazorpay(selectedOrder.id)}>
   <Text style={styles.modalButtonText}>Pay</Text>
 </TouchableOpacity>
                 <TouchableOpacity
@@ -402,4 +417,4 @@ const styles = StyleSheet.create({
   fontWeight: '600',
   },
 });
-export default GiftOrderCard;
+export default withSplashScreen(GiftOrderCard);

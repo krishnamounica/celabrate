@@ -4,6 +4,7 @@ apply plugin: "com.facebook.react"
 apply plugin: "com.google.gms.google-services"
 
 
+
 react {
     autolinkLibrariesWithApp()
 }
@@ -22,8 +23,8 @@ android {
         applicationId "com.Wishandsurprise"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 13
-        versionName "2.0.3"
+        versionCode 25
+        versionName "2.0.14"
     }
 
 splits {
@@ -67,6 +68,7 @@ dependencies {
     implementation('com.razorpay:checkout:1.6.33')
     implementation('com.google.android.gms:play-services-auth:20.7.0') 
     implementation platform('com.google.firebase:firebase-bom:33.13.0')
+    implementation ('com.google.firebase:firebase-messaging:23.1.2')
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

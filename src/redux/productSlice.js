@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
   async () => {
-    const response = await fetch('https://easyshop-7095.onrender.com/api/v1/products');
+    const response = await fetch('https://wishandsurprise.com/backend/get-products.php');
   
     return response.json();
   }

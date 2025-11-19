@@ -28,14 +28,19 @@ const ProductListScreen = () => {
       </View>
     );
   }
-
   const renderItem = ({ item }) => {
-    if (!item) return null;
+  if (!item) return null;
 
-    const discountedPrice = item.price || 0;
-    const mrp = discountedPrice + 100;
-    const discount = (mrp - discountedPrice).toFixed(0);
-    const productName = item.name?.length > 30 ? `${item.name.substring(0, 27)}...` : item.name;
+  const discountedPrice = typeof item.price === 'number' ? item.price : 0;
+  const mrp = discountedPrice + 100;
+  const discount = Number.isFinite(mrp - discountedPrice) 
+    ? (mrp - discountedPrice).toFixed(0) 
+    : '0';
+
+  const productName = item.name?.length > 30 
+    ? `${item.name.substring(0, 27)}...` 
+    : item.name;
+
 
     return (
       <View style={styles.card}>
@@ -55,9 +60,9 @@ const ProductListScreen = () => {
                                           }}
                                       >
           <Image
-            source={{ uri: item.image || 'https://via.placeholder.com/150' }} // Placeholder if no image
+            source={{ uri: item.image || 'https://via.placeholder.com/150' }} 
             style={styles.image}
-            onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)} // Debugging
+            onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)} 
           />
           </TouchableOpacity>
           <View style={styles.offerTag}>
