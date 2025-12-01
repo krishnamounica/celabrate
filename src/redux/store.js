@@ -28,3 +28,7 @@ export const store = configureStore({
     user: userSlice.reducer,
   },
 });
+
+
+// default export for convenience
+export default store;

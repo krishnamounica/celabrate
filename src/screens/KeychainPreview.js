@@ -1,6 +1,7 @@
 // KeychainPreview.js
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
+import normalizeUri from '../utils/normalizeUri';
 
 const KeychainPreview = ({ shape, imageUri, customText }) => {
   const getShapeStyle = () => {
@@ -22,7 +23,7 @@ const KeychainPreview = ({ shape, imageUri, customText }) => {
 
   return (
     <View style={[styles.keychainShape, getShapeStyle()]}>
-      {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImage} />}
+      {imageUri && <Image source={{ uri: normalizeUri(imageUri) }} style={styles.previewImage} />}
       {customText !== '' && <Text style={styles.previewText}>{customText}</Text>}
     </View>
   );

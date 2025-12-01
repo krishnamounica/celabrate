@@ -1,37 +1,25 @@
+// App.js (example root)
 import React from 'react';
+import { SafeAreaView } from 'react-native';
 import { Provider } from 'react-redux';
-import { store } from './src/redux/store';  // Ensure the store is correctly imported
 import { NavigationContainer } from '@react-navigation/native';
-import Route from './src/navigation/Route'; // Your main navigation route file
-import { Linking } from 'react-native';
-import useFirebaseNotifications from './src/screens/useFirebaseNotifications';
+import MainStack from './src/navigation/MainStack';
 
-// Set up deep linking configuration
-const linking = {
-  prefixes: ['myapp://'],
-  config: {
-    screens: {
-      GiftDetails: {
-        path: 'gift/:id',
-      },
-      // other screens...
-    },
-  },
-};
+// import the store (create if you don't have one)
+import store from './src/redux/store'; // <--- adjust path to your redux store
 
+// If you used the DeepLinkHandler approach:
+import { DeepLinkHandler, navigationRef } from './src/navigation/Route';
 
-
-const App = () => {
-  useFirebaseNotifications();
-  
+export default function App() {
   return (
+    // Provider must be the absolute root so all screens can access redux
     <Provider store={store}>
-      {/* Wrap the app with NavigationContainer and pass the linking configuration */}
-      <NavigationContainer linking={linking}>
-        <Route />  {/* This is your route setup */}
+      <NavigationContainer ref={navigationRef}>
+        <MainStack />
+        {/* deep link side-effects should be inside the same nav container */}
+        <DeepLinkHandler />
       </NavigationContainer>
     </Provider>
   );
-};
-
-export default App;
+}

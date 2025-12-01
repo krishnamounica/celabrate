@@ -11,6 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import RazorpayCheckout from 'react-native-razorpay';
 import axios from "axios";
+import normalizeUri from '../../utils/normalizeUri';
 
 const ProductsScreen = ({ route }) => {
   const { categoryId } = route.params || {}; 
@@ -35,6 +36,8 @@ const ProductsScreen = ({ route }) => {
 // Individual Product Card Component
 const ProductCard = ({ product }) => {
   const [mainImage, setMainImage] = useState(product?.image);
+  const [buyModalVisible, setBuyModalVisible] = useState(false);
+  const [selectedProductForBuy, setSelectedProductForBuy] = useState(null);
 const [userData, setUserData] = useState(null);
 const [giftModalVisible, setGiftModalVisible] = useState(false);
 const [formStep, setFormStep] = useState(1);
@@ -75,7 +78,7 @@ const [paymentDetails, setPaymentDetails] = useState({
     <View style={styles.productCard}>
       {/* Main Image */}
       {mainImage ? (
-        <Image source={{ uri: mainImage }} style={styles.productImage} />
+        <Image source={{ uri: normalizeUri(mainImage) }} style={styles.productImage} />
       ) : (
         <View style={[styles.productImage, { justifyContent: 'center', alignItems: 'center' }]}>
           <Text>No Image</Text>
@@ -86,7 +89,7 @@ const [paymentDetails, setPaymentDetails] = useState({
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.thumbnailContainer}>
         {/* {(product?.images || []).map((img, index) => (
           <TouchableOpacity key={index} onPress={() => setMainImage(img)}>
-            <Image source={{ uri: img }} style={styles.thumbnail} />
+            <Image source={{ uri: normalizeUri(img) }} style={styles.thumbnail} />
           </TouchableOpacity>
         ))} */}
       </ScrollView>
@@ -117,7 +120,7 @@ const [paymentDetails, setPaymentDetails] = useState({
         </TouchableOpacity> */}
         <TouchableOpacity
                     style={styles.buyNowButton}
-                    onPress={() => navigation.navigate('BillingAddress', { product })}
+                    onPress={() => { setSelectedProductForBuy && setSelectedProductForBuy( product .product ||  product ); setBuyModalVisible && setBuyModalVisible(true); }}
                   >
                     <Text style={styles.buttonText}>Buy Now</Text>
                   </TouchableOpacity>

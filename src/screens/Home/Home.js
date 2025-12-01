@@ -14,7 +14,7 @@ import GiftPacksGrid from '../../navigation/GiftPacksGrid';
 
 
 const Home = () => {
-  return (
+    return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
 
@@ -27,24 +27,24 @@ const Home = () => {
         <Banner />
       </View>
 
-       <View style={styles.section}>
+    <View style={styles.section}>
         <GiftPacksGrid />
           {/* <BestOffers /> */}
-        </View>
+                </View>
         {/* <View style={styles.section}>
           <TShirtCustomizer />
         </View> */}
 
         <View style={styles.section}>
           <RelationshipScreen />
-        </View>
+          </View>
 
         <View style={styles.section}>
           <ProductListScreen />
         </View>
         <View style={styles.lastsection}>
           <CelebrationsCalendar />
-        </View>
+    </View>
 
       </ScrollView>
     </SafeAreaView>

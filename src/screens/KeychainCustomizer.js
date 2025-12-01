@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
+import normalizeUri from '../utils/normalizeUri';
 
 const KeychainCustomizer = ({ onConfirm }) => {
   const [shape, setShape] = useState('Round');
@@ -34,7 +35,7 @@ const KeychainCustomizer = ({ onConfirm }) => {
 
       <View style={styles.preview}>
         <View style={[styles.keyMock, { borderRadius: shape === 'Round' ? 50 : 4, backgroundColor: color.toLowerCase() }]}>
-          {imageUri && <Image source={{ uri: imageUri }} style={styles.keyImage} />}
+          {imageUri && <Image source={{ uri: normalizeUri(imageUri) }} style={styles.keyImage} />}
           {text ? <Text style={styles.overlayText}>{text}</Text> : null}
         </View>
       </View>

@@ -14,6 +14,7 @@ import MugPreviewWithMockup from './MugPreviewWithMockup';
 import TShirtPreview from './TShirtPreview';
 import KeychainPreview from './KeychainPreview';
 import TShirtCustomizer from '../../TShirtCustomizer';
+import normalizeUri from '../utils/normalizeUri';
 
 const CustomizationForm = () => {
   const [productType, setProductType] = useState('Keychain');
@@ -119,7 +120,7 @@ const [showTShirtModal, setShowTShirtModal] = useState(false);
       <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
         <Text>{imageUri ? 'Change Image' : 'Upload Image'}</Text>
       </TouchableOpacity>
-      {imageUri && <Image source={{ uri: imageUri }} style={styles.imagePreview} />}
+      {imageUri && <Image source={{ uri: normalizeUri(imageUri) }} style={styles.imagePreview} />}
 
       {/* Conditional Inputs */}
       {productType === 'Keychain' && (

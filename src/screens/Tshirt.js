@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
+import normalizeUri from '../utils/normalizeUri';
 
 const TShirt = () => {
   const [color, setColor] = useState('White');
@@ -64,7 +65,7 @@ const TShirt = () => {
       <Text style={styles.label}>Preview:</Text>
       <View style={[styles.preview, { backgroundColor: color.toLowerCase() }]}>
         <Text style={styles.previewText}>{text}</Text>
-        {imageUri && <Image source={{ uri: imageUri }} style={styles.image} />}
+        {imageUri && <Image source={{ uri: normalizeUri(imageUri) }} style={styles.image} />}
       </View>
     </ScrollView>
   );

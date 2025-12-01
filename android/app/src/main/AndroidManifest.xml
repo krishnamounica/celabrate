@@ -50,12 +50,31 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Deep Link -->
+            <!-- Deep Link (custom scheme) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="myapp" android:host="gift" android:pathPrefix="/" />
+            </intent-filter>
+
+            <!-- Verified App Links: wishandsurprise.com -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Support both non-www and www hosts -->
+                <data android:scheme="https" android:host="wishandsurprise.com" android:pathPrefix="/giftdetails" />
+                <data android:scheme="https" android:host="www.wishandsurprise.com" android:pathPrefix="/giftdetails" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Support both non-www and www hosts -->
+                <data android:scheme="https" android:host="wishandsurprise.com" android:pathPrefix="/productdetails" />
+                <data android:scheme="https" android:host="www.wishandsurprise.com" android:pathPrefix="/productdetails" />
             </intent-filter>
         </activity>
 

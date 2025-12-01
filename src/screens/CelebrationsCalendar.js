@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React ,{useState,useEffect} from 'react';
 import { View, Text, Image, FlatList, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import normalizeUri from '../utils/normalizeUri';
 import { useNavigation } from "@react-navigation/native";
 import { faBold } from '@fortawesome/free-solid-svg-icons';
 
@@ -47,7 +48,7 @@ const CelebrationsCalendar = () => {
                                 style={[styles.categoryBox, { backgroundColor: item?.color || "#ccc" }]}
                                 onPress={() => handleCategoryPress(item)}
                               >
-                  <Image source={{ uri: item.image }} style={styles.image} />
+                  <Image source={{ uri: normalizeUri(item.image) }} style={styles.image} />
                   </TouchableOpacity>
       <Text style={styles.title}>{item.name}</Text>
     </View>

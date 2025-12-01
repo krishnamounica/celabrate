@@ -17,7 +17,6 @@ import ShippingAddressScreen from '../screens/ShippingAddressScreen';
 import KeyChains from '../screens/KeyChains';
 import Resin from '../screens/Resin';
 import NotificationsScreen from '../screens/Home/NotificationsScreen';
-
 const Stack = createNativeStackNavigator();
 
 const MainStack = () => {

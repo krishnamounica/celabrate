@@ -5,6 +5,8 @@
 # Xcode
 #
 build/
+
+
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -33,10 +35,12 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
+src_backup_before_normalize_fix/
 
 # node.js
 #
 node_modules/
+src_backup_before_normalize_fix/
 npm-debug.log
 yarn-error.log
 

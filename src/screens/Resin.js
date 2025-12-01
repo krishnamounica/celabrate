@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
+import normalizeUri from '../utils/normalizeUri';
 
 const Resin = () => {
   const [imageUri, setImageUri] = useState(null);
@@ -129,7 +130,7 @@ const Resin = () => {
           >
             {imageUri ? (
               <Image
-  source={{ uri: imageUri }}
+  source={{ uri: normalizeUri(imageUri) }}
   style={[
     styles.image,
     {

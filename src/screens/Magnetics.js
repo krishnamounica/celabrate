@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
+import normalizeUri from '../utils/normalizeUri';
 const tileSizes = ['6x6', '8x8', '12x12'];
 const Magnetics = () => {
   const [imageUri, setImageUri] = useState(null);
@@ -66,7 +67,7 @@ const Magnetics = () => {
 
       {imageUri && (
         <View style={styles.previewTile}>
-          <Image source={{ uri: imageUri }} style={styles.image} />
+          <Image source={{ uri: normalizeUri(imageUri) }} style={styles.image} />
           {caption ? (
             <View style={styles.captionOverlay}>
               <Text style={styles.captionText}>{caption}</Text>

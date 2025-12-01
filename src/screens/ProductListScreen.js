@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import normalizeUri from '../utils/normalizeUri';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProducts } from '../redux/productSlice';
 import { useNavigation } from '@react-navigation/native';
@@ -60,7 +61,7 @@ const ProductListScreen = () => {
                                           }}
                                       >
           <Image
-            source={{ uri: item.image || 'https://via.placeholder.com/150' }} 
+            source={{ uri: normalizeUri(item.image || 'https://via.placeholder.com/150') }} 
             style={styles.image}
             onError={(e) => console.log('Image Load Error:', e.nativeEvent.error)} 
           />

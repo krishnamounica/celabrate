@@ -12,6 +12,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import Header from '../Home/Header';
+import normalizeUri from '../../utils/normalizeUri';
 import withSplashScreen from '../../navigation/withSplashScreen';
 
 const screenWidth = Dimensions.get('window').width;
@@ -62,7 +63,7 @@ const CategoryList = () => {
             >
               <View style={styles.card}>
                 <Image
-                  source={{ uri: `https://wishandsurprise.com/backend/${item.image}` }}
+                  source={{ uri: normalizeUri(`https://wishandsurprise.com/backend/${item.image}`) }}
                   style={styles.image}
                   resizeMode="cover"
                 />

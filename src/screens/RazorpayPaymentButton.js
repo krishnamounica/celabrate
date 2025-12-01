@@ -10,6 +10,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RazorpayCheckout from 'react-native-razorpay';
 import { useNavigation } from '@react-navigation/native';
+import normalizeUri from '../utils/normalizeUri';
 
 const RazorpayPaymentButton = ({ route }) => {
   const { product, billingAddress } = route.params;
@@ -117,7 +118,7 @@ const RazorpayPaymentButton = ({ route }) => {
       {/* Product Card */}
       <View style={styles.card}>
         {product.image && (
-          <Image source={{ uri: product.image }} style={styles.productImage} />
+          <Image source={{ uri: normalizeUri(product.image) }} style={styles.productImage} />
         )}
         <Text style={styles.title}>{product.name}</Text>
         <Text style={styles.price}>₹ {productPrice}</Text>

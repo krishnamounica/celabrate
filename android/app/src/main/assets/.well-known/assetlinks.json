@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.Wishandsurprise",
+      "sha256_cert_fingerprints": [
+        "7F:52:C8:0F:1E:D1:43:6F:50:D8:FB:A9:EF:B2:A7:B3:47:EC:35:48:5F:FD:38:86:A4:E3:1C:7E:BF:BB:19:33"
+      ]
+    }
+  }
+]

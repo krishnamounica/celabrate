@@ -141,7 +141,7 @@ try {
     // navigation.navigate('MyBottomTab')
   };
   const handleShare = (order) => {
-    const shareLink = order.sharablelink || `http://wishandsurprise.com/gift/${order.id}`;
+    const shareLink = order.sharablelink || `https://wishandsurprise.com/gift/${order.id}`;
     const message = `🎁 Gift Idea for ${order.name}'s ${order.occasion}!\n\n` +
       `🛍️ Product: ${order.productName}\n💰 Price: ₹${order.productPrice}\n\n` +
       `👉 View More: ${shareLink}`;

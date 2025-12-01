@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
+import normalizeUri from '../utils/normalizeUri';
 
 const MugCustomizer = ({ onConfirm }) => {
   const [text, setText] = useState('');
@@ -34,7 +35,7 @@ const MugCustomizer = ({ onConfirm }) => {
 
       <View style={styles.preview}>
         <View style={[styles.mugMock, { backgroundColor: color.toLowerCase() }]}>
-          {imageUri && <Image source={{ uri: imageUri }} style={styles.mugImage} />}
+          {imageUri && <Image source={{ uri: normalizeUri(imageUri) }} style={styles.mugImage} />}
           {text ? <Text style={styles.overlayText}>{text}</Text> : null}
         </View>
       </View>

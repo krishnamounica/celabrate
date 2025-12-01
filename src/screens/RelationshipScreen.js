@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState ,useEffect } from "react";
 import { View, Text, Image, FlatList, StyleSheet, ScrollView,ActivityIndicator, TouchableOpacity} from "react-native";
+import normalizeUri from '../utils/normalizeUri';
 import { useNavigation } from "@react-navigation/native";
 
 const RelationshipScreen = () => {
@@ -49,7 +50,7 @@ const RelationshipScreen = () => {
     onPress={() => handleCategoryPress(item)}
   >
     <View style={styles.imageContainer}>
-      <Image source={{ uri: item.image }} style={styles.image} />
+      <Image source={{ uri: normalizeUri(item.image) }} style={styles.image} />
     </View>
     <Text style={styles.label}>{item.name}</Text>
   </TouchableOpacity>

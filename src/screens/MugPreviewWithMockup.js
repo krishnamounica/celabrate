@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
+import normalizeUri from '../utils/normalizeUri';
 
 const MugPreviewWithMockup = ({ imageUri, customText }) => {
   return (
@@ -14,7 +15,7 @@ const MugPreviewWithMockup = ({ imageUri, customText }) => {
       {/* 🖼 User Image Overlay */}
       {imageUri && (
         <Image
-          source={{ uri: imageUri }}
+          source={{ uri: normalizeUri(imageUri) }}
           style={styles.overlayImage}
           resizeMode="cover"
         />
