@@ -64,7 +64,7 @@ const GiftDetailsScreen = ({ route, navigation }) => {
   const [feedbackRelationshipOther, setFeedbackRelationshipOther] = useState('');
   const [feedbackImage, setFeedbackImage] = useState(null);
   const [suggestionsExpanded, setSuggestionsExpanded] = useState(false);
-  const [showSuggestionHint, setShowSuggestionHint] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(null);  
   const [resolvedFeedbackUris, setResolvedFeedbackUris] = useState({});
   const [failedFeedbackImgs, setFailedFeedbackImgs] = useState({});
 
@@ -428,22 +428,6 @@ useEffect(() => {
     }
   })();
 
-  // show hint only once - load persisted flag on component mount
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const seen = await AsyncStorage.getItem('seenSuggestionHint');
-        if (!mounted) return;
-        // show hint only if not seen
-        setShowSuggestionHint(seen !== 'true');
-      } catch (e) {
-        // ignore
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
   // Resolve feedback image URL robustly: try normalized https, then http, then alternate paths
   // This effect runs on every render (hook is declared unconditionally) but only
   // performs work when `gift` (and thus feedbackList) exists.
@@ -562,21 +546,36 @@ useEffect(() => {
         <Item label="No. of Payments" value={gift.noOfPayments?.toString()} />
         <Item label="Payment Amount" value={`₹${gift.paymentAmount}`} />
         {/* If not fully paid show Pay button, otherwise show Give Feedback */}
-        {Number(gift.paymentAmount || 0) < Number(gift.totalAmount || 0) ? (
-          <TouchableOpacity
-            onPress={() => setShowPayModal(true)}
-            style={{ marginTop: 12, backgroundColor: '#ff6600', padding: 10, borderRadius: 8 }}
-          >
-            <Text style={{ color: '#fff', textAlign: 'center' }}>Pay Now</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            onPress={() => setShowFeedbackModal(true)}
-            style={{ marginTop: 12, backgroundColor: 'green', padding: 10, borderRadius: 8 }}
-          >
-            <Text style={{ color: '#fff', textAlign: 'center' }}>Give Feedback</Text>
-          </TouchableOpacity>
-        )}
+        <View style={{ marginTop: 12 }}>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              onPress={() => setShowPayModal(true)}
+              disabled={Number(gift.remainingAmount || 0) <= 0}
+              style={{
+                flex: 1,
+                padding: 10,
+                borderRadius: 8,
+                alignItems: 'center',
+                backgroundColor: Number(gift.remainingAmount || 0) <= 0 ? '#cccccc' : '#ff6600'
+              }}
+            >
+              <Text style={{ color: Number(gift.remainingAmount || 0) <= 0 ? '#666' : '#fff', textAlign: 'center' }}>
+                {Number(gift.remainingAmount || 0) <= 0 ? 'Fully Collected' : 'Contribute'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setShowFeedbackModal(true)}
+              style={{ flex: 1, marginLeft: 8, backgroundColor: '#2e8b57', padding: 10, borderRadius: 8, alignItems: 'center' }}
+            >
+              <Text style={{ color: '#fff', textAlign: 'center' }}>Send Wishes</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={{ marginTop: 8, color: '#555', fontSize: 12 }}>
+            Contributions are shared among group members. When total amount is collected the Contribute button is disabled.
+          </Text>
+        </View>
       </Section>
 
       <Section title="Links">
@@ -677,196 +676,345 @@ useEffect(() => {
         </View>
       </Modal>
 {/* Feedback modal (fixed: proper height, scrollable, actions pinned) */}
+{/* Feedback modal – cleaned up layout + styles */}
 <Modal visible={showFeedbackModal} transparent animationType="fade">
   <View style={styles.modalOverlay}>
-    <View style={[styles.modalCardLarge, { overflow: 'hidden' }]}>
+    <View style={styles.modalCardLarge}>
+      {/* Header */}
+      <View style={styles.modalHeader}>
+        <View>
+          <Text style={styles.modalTitle}>Send Wishes</Text>
+          <Text style={styles.modalSubTitleSmall}>
+            Share a short message for the recipient
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => {
+            setShowFeedbackModal(false);
+            setFeedbackImage(null);
+          }}
+          style={styles.closeBtn}
+          accessibilityLabel="Close"
+        >
+          <Text style={styles.closeBtnText}>✕</Text>
+        </TouchableOpacity>
+      </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 24}
         style={{ flex: 1 }}
       >
+        {/* CONTENT */}
         <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 16, flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+  style={{ flex: 1 }}
+  contentContainerStyle={styles.modalContent}
+  keyboardShouldPersistTaps="handled"
+  showsVerticalScrollIndicator={false}
+>
+  {/* NAME */}
+  <Text style={styles.labelSmall}>Your name <Text style={styles.labelOptional}>(optional)</Text></Text>
+  <TextInput
+    value={feedbackName}
+    onChangeText={setFeedbackName}
+    style={[styles.input, { marginTop: 6 }]}
+    placeholder="Eg: Krishna, Prem, Team ABC"
+    returnKeyType="next"
+  />
+
+  {/* RELATIONSHIP */}
+  <Text style={[styles.labelSmall, { marginTop: 16 }]}>Relationship</Text>
+  <View style={styles.relationRow}>
+    {[
+      'Friend', 'Brother', 'Sister', 'Mother', 'Father', 'Son', 'Daughter',
+      'Husband', 'Wife', 'Partner', 'Cousin', 'Uncle', 'Aunt',
+      'Grandmother', 'Grandfather', 'Colleague', 'Neighbor', 'Boss', 'Other',
+    ].map((r) => {
+      const selected =
+        feedbackRelationship &&
+        feedbackRelationship.toLowerCase() === r.toLowerCase();
+
+      return (
+        <TouchableOpacity
+          key={`rel-${r}`}
+          onPress={() => setFeedbackRelationship(r === 'Other' ? 'Other' : r)}
+          style={[
+            styles.relationChip,
+            selected && styles.relationChipSelected,
+          ]}
         >
-          {/* This wrapper ensures top content and bottom actions are spaced properly */}
-          <View style={{ flex: 1, justifyContent: 'space-between' }}>
-            <View>
-              <Text style={styles.modalTitle}>Share your Wishes</Text>
-              <Text style={styles.modalSubTitle}>Write a quick message for the recipient</Text>
+          <Text style={selected ? styles.relationChipTextSelected : styles.relationChipText}>
+            {r}
+          </Text>
+        </TouchableOpacity>
+      );
+    })}
+  </View>
 
-              <Text style={{ marginTop: 12, fontWeight: '600' }}>Name</Text>
-              <TextInput
-                value={feedbackName}
-                onChangeText={setFeedbackName}
-                style={[styles.input, { marginTop: 8 }]}
-                placeholder="Your name"
-              />
+  {feedbackRelationship === 'Other' && (
+    <TextInput
+      value={feedbackRelationshipOther}
+      onChangeText={setFeedbackRelationshipOther}
+      style={[styles.input, { marginTop: 8 }]}
+      placeholder="Eg: Cousin, Neighbour, Teammate"
+    />
+  )}
 
-              <Text style={{ marginTop: 12, fontWeight: '600' }}>Relationship</Text>
-              <View style={styles.relationRow}>
-                {['Friend','Brother','Sister','Mother','Father','Son','Daughter','Husband','Wife','Partner','Cousin','Uncle','Aunt','Grandmother','Grandfather','Colleague','Neighbor','Boss','Other'].map((r) => (
-                  <TouchableOpacity
-                    key={`rel-${r}`}
-                    onPress={() => setFeedbackRelationship(r === 'Other' ? 'Other' : r)}
-                    style={[
-                      styles.relationChip,
-                      feedbackRelationship && feedbackRelationship.toLowerCase() === r.toLowerCase() ? styles.relationChipSelected : null,
-                    ]}
-                  >
-                    <Text style={feedbackRelationship && feedbackRelationship.toLowerCase() === r.toLowerCase() ? styles.relationChipTextSelected : styles.relationChipText}>{r}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+  {/* QUICK SUGGESTIONS */}
+  <Text style={[styles.labelSmall, { marginTop: 18 }]}>Quick suggestions</Text>
+  <Text style={styles.quickHint}>
+    Tap a suggestion to auto-fill your message. You can edit it below.
+  </Text>
 
-              {feedbackRelationship === 'Other' && (
-                <TextInput
-                  value={feedbackRelationshipOther}
-                  onChangeText={setFeedbackRelationshipOther}
-                  style={[styles.input, { marginTop: 8 }]}
-                  placeholder="Specify relation (e.g. cousin, neighbour)"
-                />
-              )}
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    style={styles.suggestionsRow}
+    contentContainerStyle={{ paddingVertical: 6 }}
+  >
+    {(() => {
+      const visible = suggestionsExpanded
+        ? quickSuggestions
+        : quickSuggestions.slice(0, 4);
 
-              <Text style={{ marginTop: 12, fontWeight: '600' }}>Message</Text>
-              <TextInput
-                value={feedbackMessage}
-                onChangeText={setFeedbackMessage}
-                style={[styles.input, { marginTop: 8, height: 120, textAlignVertical: 'top' }]}
-                placeholder="Write your wishes..."
-                multiline
-              />
+      const nodes = visible.map((s, i) => {
+        const selected = selectedSuggestionIndex === i;
+        return (
+          <TouchableOpacity
+            key={`sug-${i}`}
+            onPress={() => {
+              // replace message with selected suggestion
+              setFeedbackMessage(s);
+              setSelectedSuggestionIndex(i);
+            }}
+            style={[
+              styles.suggestionChip,
+              selected && styles.suggestionChipSelected,
+            ]}
+            accessibilityRole="button"
+          >
+            <Text
+              style={[
+                styles.suggestionChipText,
+                selected && styles.suggestionChipTextSelected,
+              ]}
+              numberOfLines={2}
+            >
+              {s}
+            </Text>
+          </TouchableOpacity>
+        );
+      });
 
-              <Text style={{ marginTop: 10, fontWeight: '600', color: '#555' }}>Quick suggestions</Text>
+      if (!suggestionsExpanded && quickSuggestions.length > 4) {
+        nodes.push(
+          <TouchableOpacity
+            key="more-chip"
+            onPress={() => setSuggestionsExpanded(true)}
+            style={[styles.suggestionChip, styles.moreChip]}
+          >
+            <Text style={[styles.suggestionChipText, { fontWeight: '700' }]}>
+              More
+            </Text>
+          </TouchableOpacity>,
+        );
+      }
+      if (suggestionsExpanded && quickSuggestions.length > 4) {
+        nodes.push(
+          <TouchableOpacity
+            key="less-chip"
+            onPress={() => setSuggestionsExpanded(false)}
+            style={[styles.suggestionChip, styles.moreChip]}
+          >
+            <Text style={[styles.suggestionChipText, { fontWeight: '700' }]}>
+              Less
+            </Text>
+          </TouchableOpacity>,
+        );
+      }
 
-              {showSuggestionHint ? (
-                <View style={styles.hintRow}>
-                  <Text style={styles.hintText}>Tip: Tap to insert • Long-press to append</Text>
-                  <TouchableOpacity onPress={async () => { setShowSuggestionHint(false); await AsyncStorage.setItem('seenSuggestionHint','true'); }} style={styles.hintDismiss}>
-                    <Text style={styles.hintDismissText}>Got it</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : null}
+      return nodes;
+    })()}
+  </ScrollView>
 
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestionsRow} contentContainerStyle={{ paddingRight: 8 }}>
-                {(() => {
-                  const visible = suggestionsExpanded ? quickSuggestions : quickSuggestions.slice(0, 3);
-                  const nodes = visible.map((s, i) => (
-                    <TouchableOpacity
-                      key={`sug-${i}`}
-                      onPress={() => setFeedbackMessage(s)}
-                      onLongPress={() => setFeedbackMessage(prev => prev ? `${prev} ${s}` : s)}
-                      style={styles.suggestionChip}
-                    >
-                      <Text style={styles.suggestionChipText} numberOfLines={2}>{s}</Text>
-                    </TouchableOpacity>
-                  ));
+  {/* MESSAGE – directly under suggestions */}
+  <Text style={[styles.labelSmall, { marginTop: 14 }]}>Message</Text>
+  <TextInput
+    value={feedbackMessage}
+    onChangeText={(txt) => {
+      setFeedbackMessage(txt);
+      setSelectedSuggestionIndex(null); // user started editing
+    }}
+    style={[styles.input, styles.messageInput]}
+    placeholder="Eg: Congrats on this milestone – proud to work with you!"
+    multiline
+    numberOfLines={5}
+  />
+  <Text style={styles.charCount}>
+    {(feedbackMessage || '').length} / 500
+  </Text>
 
-                  if (!suggestionsExpanded && quickSuggestions.length > 3) {
-                    nodes.push(
-                      <TouchableOpacity key="more-chip" onPress={() => setSuggestionsExpanded(true)} style={[styles.suggestionChip, styles.moreChip]}>
-                        <Text style={[styles.suggestionChipText, { fontWeight: '700' }]}>More</Text>
-                      </TouchableOpacity>
-                    );
+  {/* PHOTO */}
+  <View style={styles.photoRow}>
+    <View style={{ flex: 1 }}>
+      <Text style={styles.labelSmall}>
+        Photo <Text style={styles.labelOptional}>(optional)</Text>
+      </Text>
+    </View>
+    <View style={styles.photoActions}>
+      <TouchableOpacity
+        onPress={() => {
+          ImagePicker.openPicker({
+            width: 400,
+            height: 400,
+            cropping: true,
+          })
+            .then((img) => setFeedbackImage(img))
+            .catch((e) => console.warn('picker', e));
+        }}
+        style={styles.addPhotoButton}
+      >
+        <Text style={styles.addPhotoText}>Add Photo</Text>
+      </TouchableOpacity>
+      {feedbackImage ? (
+        <View style={styles.thumbWrap}>
+          <Image
+            source={{ uri: normalizePhotoUri(feedbackImage) }}
+            style={styles.previewImage}
+          />
+          <TouchableOpacity
+            style={styles.removeThumb}
+            onPress={() => setFeedbackImage(null)}
+          >
+            <Text style={styles.removeThumbText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+    </View>
+  </View>
+</ScrollView>
+
+
+        {/* ACTION BUTTONS – like your screenshot */}
+        <View style={styles.stickyActions}>
+          <TouchableOpacity
+            onPress={async () => {
+              if (!feedbackMessage.trim()) {
+                return Alert.alert('Empty', 'Please enter some wishes');
+              }
+              try {
+                const userDataString = await AsyncStorage.getItem('userData');
+                const userData = userDataString
+                  ? JSON.parse(userDataString)
+                  : {};
+
+                let uploadedImageUrl = '';
+                if (feedbackImage) {
+                  const fd = new FormData();
+                  let localUri =
+                    feedbackImage.path || feedbackImage.uri || '';
+                  if (
+                    localUri &&
+                    !localUri.startsWith('file://') &&
+                    !localUri.startsWith('http')
+                  )
+                    localUri = `file://${localUri}`;
+                  fd.append('file', {
+                    uri: localUri,
+                    name: 'photo.jpg',
+                    type: feedbackImage.mime || 'image/jpeg',
+                  });
+                  fd.append('giftId', gift.id);
+                  const up = await fetch(
+                    'https://wishandsurprise.com/backend/upload-feedback-image.php',
+                    { method: 'POST', body: fd },
+                  );
+                  const upJson = await up.json();
+                  if (upJson && upJson.success) {
+                    if (upJson.url) uploadedImageUrl = upJson.url;
+                    else if (
+                      Array.isArray(upJson.alt_urls) &&
+                      upJson.alt_urls.length > 0
+                    )
+                      uploadedImageUrl = upJson.alt_urls[0];
                   }
+                }
 
-                  if (suggestionsExpanded && quickSuggestions.length > 3) {
-                    nodes.push(
-                      <TouchableOpacity key="less-chip" onPress={() => setSuggestionsExpanded(false)} style={[styles.suggestionChip, styles.moreChip]}>
-                        <Text style={[styles.suggestionChipText, { fontWeight: '700' }]}>Less</Text>
-                      </TouchableOpacity>
-                    );
-                  }
+                const relationshipToSave =
+                  feedbackRelationship === 'Other'
+                    ? feedbackRelationshipOther || ''
+                    : feedbackRelationship || '';
 
-                  return nodes;
-                })()}
-              </ScrollView>
+                const feedbackObject = {
+                  userId: userData?.id,
+                  message: feedbackMessage,
+                  name: feedbackName || '',
+                  relationship: relationshipToSave,
+                  photo: uploadedImageUrl || '',
+                };
 
-              <Text style={{ marginTop: 12, fontWeight: '600' }}>Photo (optional)</Text>
-              <View style={{ flexDirection: 'row', alignItems:'center', marginTop: 8 }}>
-                <TouchableOpacity onPress={() => {
-                  ImagePicker.openPicker({ width: 400, height: 400, cropping: true }).then(img => {
-                    setFeedbackImage(img);
-                  }).catch(e=>console.warn('picker',e))
-                }} style={styles.addPhotoButton}>
-                  <Text>Add Photo</Text>
-                </TouchableOpacity>
-                {feedbackImage && <Image source={{ uri: normalizePhotoUri(feedbackImage) }} style={styles.previewImage} onError={(e) => console.warn('[GiftDetails] preview image load error:', normalizePhotoUri(feedbackImage), e.nativeEvent || e)} />}
-              </View>
-            </View>
-
-            {/* action row - stays at bottom of modal */}
-            <View style={[styles.modalActionsRow, { marginTop: 12 }]}>
-              <TouchableOpacity onPress={async () => {
-                if (!feedbackMessage.trim()) return Alert.alert('Empty', 'Please enter some feedback');
+                let prevList = [];
                 try {
-                  const userDataString = await AsyncStorage.getItem('userData');
-                  const userData = userDataString ? JSON.parse(userDataString) : {};
+                  prevList = gift.feedback
+                    ? JSON.parse(gift.feedback)
+                    : [];
+                } catch (e) {
+                  prevList = [];
+                }
+                const newList = [...prevList, feedbackObject];
 
-                  let uploadedImageUrl = '';
-                  if (feedbackImage) {
-                    const fd = new FormData();
-                    let localUri = feedbackImage.path || feedbackImage.uri || '';
-                    if (localUri && !localUri.startsWith('file://') && !localUri.startsWith('http')) {
-                      localUri = `file://${localUri}`;
-                    }
-                    fd.append('file', { uri: localUri, name: 'photo.jpg', type: feedbackImage.mime || 'image/jpeg' });
-                    fd.append('giftId', gift.id);
-                    const up = await fetch('https://wishandsurprise.com/backend/upload-feedback-image.php', { method: 'POST', body: fd });
-                    const upJson = await up.json();
-                    if (upJson && upJson.success) {
-                      if (upJson.url) uploadedImageUrl = upJson.url;
-                      else if (Array.isArray(upJson.alt_urls) && upJson.alt_urls.length > 0) uploadedImageUrl = upJson.alt_urls[0];
-                    }
-                  }
-
-                  const relationshipToSave = feedbackRelationship === 'Other' ? (feedbackRelationshipOther || '') : feedbackRelationship || '';
-                  const feedbackObject = {
-                    userId: userData?.id,
-                    message: feedbackMessage,
-                    name: feedbackName || '',
-                    relationship: relationshipToSave,
-                    photo: uploadedImageUrl || ''
-                  };
-
-                  let prevList = [];
-                  try { prevList = gift.feedback ? JSON.parse(gift.feedback) : []; } catch(e) { prevList = []; }
-                  const newList = [...prevList, feedbackObject];
-
-                  const res = await fetch(`https://wishandsurprise.com/backend/update-gift.php?id=${gift.id}`, {
+                const res = await fetch(
+                  `https://wishandsurprise.com/backend/update-gift.php?id=${gift.id}`,
+                  {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ feedback: newList })
-                  });
-                  const result = await res.json();
-                  if (result?.success || result?.gift) {
-                    Alert.alert('Thanks', 'Feedback submitted successfully');
-                    setShowFeedbackModal(false);
-                    setFeedbackMessage(''); setFeedbackName(''); setFeedbackRelationship(''); setFeedbackRelationshipOther(''); setFeedbackImage(null);
-                    setGift(prev => ({ ...prev, feedback: JSON.stringify(newList) }));
-                  } else {
-                    Alert.alert('Error', result?.error || 'Failed to submit feedback');
-                  }
-                } catch (err) {
-                  console.error('Feedback error', err);
-                  Alert.alert('Error', 'Failed to submit feedback');
+                    body: JSON.stringify({ feedback: newList }),
+                  },
+                );
+                const result = await res.json();
+                if (result?.success || result?.gift) {
+                  Alert.alert('Thanks', 'Wishes submitted successfully');
+                  setShowFeedbackModal(false);
+                  setFeedbackMessage('');
+                  setFeedbackName('');
+                  setFeedbackRelationship('');
+                  setFeedbackRelationshipOther('');
+                  setFeedbackImage(null);
+                  setGift((prev) => ({
+                    ...prev,
+                    feedback: JSON.stringify(newList),
+                  }));
+                } else {
+                  Alert.alert(
+                    'Error',
+                    result?.error || 'Failed to submit wishes',
+                  );
                 }
-              }} style={[styles.modalButton, styles.modalButtonPrimary]}>
-                <Text style={styles.modalButtonPrimaryText}>Submit</Text>
-              </TouchableOpacity>
+              } catch (err) {
+                console.error('Feedback error', err);
+                Alert.alert('Error', 'Failed to submit wishes');
+              }
+            }}
+            style={[styles.modalButton, styles.modalButtonPrimary]}
+          >
+            <Text style={styles.modalButtonPrimaryText}>Submit Wishes</Text>
+          </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => { setShowFeedbackModal(false); setFeedbackImage(null); }} style={[styles.modalButton, styles.modalButtonSecondary]}>
-                <Text style={styles.modalButtonSecondaryText}>Close</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
+          <TouchableOpacity
+            onPress={() => {
+              setShowFeedbackModal(false);
+              setFeedbackImage(null);
+            }}
+            style={[styles.modalButton, styles.modalButtonSecondary]}
+          >
+            <Text style={styles.modalButtonSecondaryText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </View>
   </View>
 </Modal>
+
 
 
     </ScrollView>
@@ -933,7 +1081,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // Modal overlay & card styles for professional popups
+
+  /*** MODALS ***/
   modalOverlay: {
     position: 'absolute',
     top: 0,
@@ -945,7 +1094,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  modalCard: {
+   modalCard: {
     width: '100%',
     maxWidth: 420,
     backgroundColor: '#fff',
@@ -957,37 +1106,54 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   modalCardLarge: {
-  width: '100%',
-  maxWidth: 460,
-  backgroundColor: '#fff',
-  borderRadius: 12,
-  shadowColor: '#000',
-  shadowOpacity: 0.14,
-  shadowRadius: 12,
-  elevation: 8,
-  // important to ensure modal is visible and doesn't collapse
-  minHeight: 420,       // <-- ensures visible initial height
-  maxHeight: '85%',     // <-- prevents overflow on small screens
-},
-modalActionsRow: {
-  flexDirection: 'row',
-  marginTop: 14,
-  gap: 8,
-  // ensure action row stretches full width inside modal
-  alignItems: 'center',
-},
+    width: '92%',
+    maxWidth: 520,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    elevation: 12,
+    flex: 1,
+    maxHeight: '80%',
+    alignSelf: 'center',
+    overflow: 'hidden',
+  },
 
-
-  modalTitle: {
-    fontWeight: '700',
-    fontSize: 18,
-    marginBottom: 8,
-    color: '#222',
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f1f1',
+    backgroundColor: '#fff',
   },
   modalSubTitle: {
     color: '#666',
     marginBottom: 8,
   },
+  modalSubTitleSmall: {
+    color: '#666',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  closeBtn: {
+    padding: 8,
+    borderRadius: 20,
+  },
+  closeBtnText: {
+    fontSize: 18,
+    color: '#666',
+  },
+
+  modalContent: {
+    padding: 16,
+    paddingBottom: 16,
+  },
+
   input: {
     width: '100%',
     borderWidth: 1,
@@ -1036,6 +1202,7 @@ modalActionsRow: {
     fontWeight: '600',
     textAlign: 'center',
   },
+
   shareRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1072,7 +1239,7 @@ modalActionsRow: {
     color: '#fff',
     fontWeight: '700',
   },
-  // suggestion chip styles
+
   suggestionsRow: {
     marginTop: 8,
     flexDirection: 'row',
@@ -1083,12 +1250,12 @@ modalActionsRow: {
     borderWidth: 1,
     borderColor: '#eee',
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    paddingHorizontal: 10,
+    borderRadius: 18,
     marginRight: 8,
-    maxWidth: 220,
+    maxWidth: 180,
     shadowColor: '#000',
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.04,
     shadowRadius: 6,
     elevation: 2,
   },
@@ -1097,6 +1264,11 @@ modalActionsRow: {
     fontSize: 13,
     lineHeight: 18,
   },
+  moreChip: {
+    backgroundColor: '#fffbe6',
+    borderColor: '#ffe3a8',
+  },
+
   relationRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1123,38 +1295,159 @@ modalActionsRow: {
     color: '#b84a00',
     fontWeight: '700',
   },
-  hintRow: {
+
+  labelSmall: {
+    fontSize: 13,
+    color: '#444',
+    fontWeight: '600',
+  },
+  messageInput: {
+    height: 120,
+    textAlignVertical: 'top',
+    marginTop: 6,
+  },
+  charCount: {
+    textAlign: 'right',
+    color: '#888',
+    fontSize: 12,
+    marginTop: 6,
+  },
+  photoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff7e9',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ffeecc',
-    marginTop: 8,
-    marginBottom: 6,
+    marginTop: 12,
   },
-  hintText: {
-    color: '#6b4a12',
-    flex: 1,
-    fontSize: 12,
+  photoActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  hintDismiss: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#f4a261',
-  },
-  hintDismissText: {
-    color: '#fff',
+  addPhotoText: {
+    color: '#0b5fff',
     fontWeight: '700',
+  },
+  thumbWrap: {
+    marginLeft: 8,
+    position: 'relative',
+  },
+  removeThumb: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 2,
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  removeThumbText: {
     fontSize: 12,
+    color: '#b84a00',
   },
-  moreChip: {
-    backgroundColor: '#fffbe6',
-    borderColor: '#ffe3a8',
+
+  // bottom buttons INSIDE the card
+  stickyActions: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f1f1',
+    backgroundColor: '#fff',
+    gap: 8,
   },
+  quickHint: {
+  fontSize: 11,
+  color: '#777',
+  marginTop: 4,
+},
+
+suggestionChipSelected: {
+  backgroundColor: '#ffedd8',
+  borderColor: '#ffb780',
+},
+
+
+labelSmall: {
+  fontSize: 13,
+  color: '#333',
+  fontWeight: '600',
+},
+
+labelOptional: {
+  fontSize: 11,
+  color: '#999',
+},
+
+relationRow: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  marginTop: 8,
+},
+
+relationChip: {
+  paddingVertical: 8,
+  paddingHorizontal: 14,
+  borderRadius: 18,
+  borderWidth: 1,
+  borderColor: '#e6e6e6',
+  backgroundColor: '#fff',
+  marginRight: 8,
+  marginBottom: 8,
+},
+
+relationChipSelected: {
+  backgroundColor: '#ffedd8',
+  borderColor: '#ffb780',
+},
+
+relationChipText: {
+  color: '#333',
+  fontWeight: '600',
+},
+
+relationChipTextSelected: {
+  color: '#b84a00',
+  fontWeight: '700',
+},
+
+quickHint: {
+  fontSize: 11,
+  color: '#777',
+  marginTop: 4,
+},
+
+suggestionChip: {
+  backgroundColor: '#fff',
+  borderWidth: 1,
+  borderColor: '#eee',
+  paddingVertical: 8,
+  paddingHorizontal: 12,
+  borderRadius: 18,
+  marginRight: 8,
+  maxWidth: 220,
+  shadowColor: '#000',
+  shadowOpacity: 0.04,
+  shadowRadius: 6,
+  elevation: 2,
+},
+
+suggestionChipSelected: {
+  backgroundColor: '#ffedd8',
+  borderColor: '#ffb780',
+},
+
+suggestionChipText: {
+  color: '#333',
+  fontSize: 13,
+  lineHeight: 18,
+},
+
+suggestionChipTextSelected: {
+  color: '#b84a00',
+  fontWeight: '700',
+},
+
+
 });
 
 // export const  GiftDetailsScreen;

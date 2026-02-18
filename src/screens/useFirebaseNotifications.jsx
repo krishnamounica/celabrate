@@ -4,6 +4,7 @@ import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function useFirebaseNotifications() {
+  console.log("useFirebaseNotifications initialized");
   useEffect(() => {
     const fetchAndSendFCMToken = async () => {
       try {
@@ -28,6 +29,7 @@ export default function useFirebaseNotifications() {
 
         if (enabled) {
           const token = await messaging().getToken();
+          console.log('FCM Token:', token);
           await fetch('https://wishandsurprise.com/backend/save-token.php', {
             method: 'POST',
             headers: {

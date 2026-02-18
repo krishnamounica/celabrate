@@ -1,122 +1,184 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Button,
+  Alert,
+  ScrollView,
+} from 'react-native';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
 import moment from 'moment';
 
-const InvoiceScreen = ({ route ,navigation }) => {
-  const { paymentDetails, product, billingAddress } = route.params;
+const InvoiceScreen = ({ route, navigation }) => {
+  const {
+    summary,
+    items = [],
+    billingAddress = '',
+    paymentId,
+  } = route.params || {};
 
+  /* ---------- SAFETY ---------- */
+  if (!summary) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ color: 'red' }}>
+          Invoice data missing
+        </Text>
+      </View>
+    );
+  }
 
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [pdfPath, setPdfPath] = useState('');
 
-  const gstRate = 0.18;
-  const gstAmount = (paymentDetails.amount * gstRate) / (1 + gstRate);
-  const baseAmount = paymentDetails.amount - gstAmount;
-
+  /* ---------- INVOICE NUMBER ---------- */
   useEffect(() => {
-    const generateInvoiceNumber = () => {
-      const random = Math.floor(100000 + Math.random() * 900000);
-      setInvoiceNumber(`INV-${random}`);
-    };
-    generateInvoiceNumber();
+    const random = Math.floor(100000 + Math.random() * 900000);
+    setInvoiceNumber(`INV-${random}`);
   }, []);
 
+  /* ---------- AUTO REDIRECT ---------- */
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.navigate('OrderHistory'); 
+      navigation.replace('OrderHistory');
     }, 5000);
 
-    return () => clearTimeout(timer); 
-  }, []);
+    return () => clearTimeout(timer);
+  }, [navigation]);
 
+  /* ---------- CREATE PDF ---------- */
   const createPDF = async () => {
-    const htmlContent = `
-      <h1 style="text-align:center">Wish & Surprise</h1>
-      <h3>Invoice Number: ${invoiceNumber}</h3>
-      <p><strong>Date:</strong> ${moment(paymentDetails.createdAt).format('DD-MM-YYYY')}</p>
-      <hr/>
-      <h4>Billing Address:</h4>
-      <p>
-        ${billingAddress}<br/>
-        
-      </p>
-      <hr/>
-      <h4>Product:</h4>
-      <p>${product.name} (Qty: ${product.quantity || 1})</p>
-      <hr/>
-      <h4>Payment Details:</h4>
-      <p>Base Amount: ₹${baseAmount.toFixed(2)}</p>
-      <p>GST (18%): ₹${gstAmount.toFixed(2)}</p>
-      <p>Delivery Charges: ₹${paymentDetails.deliveryCharges || 0}</p>
-      <p>Transaction Charges: ₹${paymentDetails.transactionCharges || 0}</p>
-      <p><strong>Total Paid:</strong> ₹${paymentDetails.amount.toFixed(2)}</p>
-      <p>Payment Mode: ${paymentDetails.paymentMode}</p>
-    `;
-
-    const options = {
-      html: htmlContent,
-      fileName: invoiceNumber,
-      directory: 'Documents',
-    };
-
-    const file = await RNHTMLtoPDF.convert(options);
-    setPdfPath(file.filePath);
-    Alert.alert('PDF Generated', 'Invoice PDF created successfully!');
-  };
-
-  const sharePDF = async () => {
-    if (!pdfPath) return Alert.alert('No PDF', 'Please generate PDF first.');
-
     try {
-      await Share.open({
-        title: 'Share Invoice',
-        url: `file://${pdfPath}`,
-        type: 'application/pdf',
+      const itemsHtml = items
+        .map(
+          i => `
+          <tr>
+            <td>${i.name}</td>
+            <td>${i.quantity}</td>
+            <td>₹ ${i.final_price}</td>
+          </tr>
+        `
+        )
+        .join('');
+
+      const html = `
+        <h1 style="text-align:center">Wish & Surprise</h1>
+
+        <p><strong>Invoice:</strong> ${invoiceNumber}</p>
+        <p><strong>Date:</strong> ${moment().format(
+          'DD-MM-YYYY'
+        )}</p>
+        <p><strong>Payment ID:</strong> ${paymentId}</p>
+
+        <hr />
+
+        <h3>Billing Address</h3>
+        <p>${billingAddress}</p>
+
+        <hr />
+
+        <h3>Items</h3>
+        <table width="100%" border="1" cellspacing="0" cellpadding="8">
+          <tr>
+            <th align="left">Product</th>
+            <th>Qty</th>
+            <th>Amount</th>
+          </tr>
+          ${itemsHtml}
+        </table>
+
+        <hr />
+
+        <h3>Payment Summary</h3>
+        <p>Base Amount: ₹ ${summary.base_amount}</p>
+        <p>Discount: ₹ ${summary.discount}</p>
+        <p>GST: ₹ ${summary.gst}</p>
+        <p>Delivery: ₹ ${summary.delivery}</p>
+        <h2>Total Paid: ₹ ${summary.total_payable}</h2>
+      `;
+
+      const file = await RNHTMLtoPDF.convert({
+        html,
+        fileName: invoiceNumber,
+        directory: 'Documents',
       });
-    } catch (error) {
-      console.warn('Sharing failed:', error);
+
+      setPdfPath(file.filePath);
+      Alert.alert('Success', 'Invoice PDF generated');
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', 'Failed to generate PDF');
     }
   };
 
+  /* ---------- SHARE PDF ---------- */
+  const sharePDF = async () => {
+    if (!pdfPath) {
+      Alert.alert('No PDF', 'Generate invoice first');
+      return;
+    }
+
+    try {
+      await Share.open({
+        url: `file://${pdfPath}`,
+        type: 'application/pdf',
+      });
+    } catch (e) {
+      console.warn('Share cancelled');
+    }
+  };
+
+  /* ---------- UI ---------- */
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Invoice Preview</Text>
-      <Text style={styles.label}>Invoice #: {invoiceNumber}</Text>
-      <Text style={styles.label}>Date: {moment(paymentDetails.createdAt).format('DD MMM YYYY')}</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.heading}>Invoice</Text>
+
+      <Text>Invoice #: {invoiceNumber}</Text>
+      <Text>Date: {moment().format('DD MMM YYYY')}</Text>
+      <Text>Payment ID: {paymentId}</Text>
 
       <Text style={styles.section}>Billing Address</Text>
       <Text>{billingAddress}</Text>
-      {/* <Text>{billingAddress.addressLine1}</Text>
-      <Text>{billingAddress.city}, {billingAddress.state} - {billingAddress.pincode}</Text>
-      <Text>Phone: {billingAddress.phone}</Text> */}
 
-      <Text style={styles.section}>Product</Text>
-      <Text>{product.name} (Qty: {product.quantity || 1})</Text>
+      <Text style={styles.section}>Items</Text>
+      {items.map((i, idx) => (
+        <Text key={idx}>
+          {i.name} × {i.quantity} — ₹ {i.final_price}
+        </Text>
+      ))}
 
-      <Text style={styles.section}>Amount Summary</Text>
-      <Text>Base Amount: ₹{baseAmount.toFixed(2)}</Text>
-      <Text>GST (18%): ₹{gstAmount.toFixed(2)}</Text>
-      <Text>Delivery Charges: ₹{paymentDetails.deliveryCharges || 0}</Text>
-      <Text>Transaction Charges: ₹{paymentDetails.transactionCharges || 0}</Text>
-      <Text style={styles.total}>Total Paid: ₹{paymentDetails.amount.toFixed(2)}</Text>
+      <Text style={styles.section}>Summary</Text>
+      <Text>Base: ₹ {summary.base_amount}</Text>
+      <Text>Discount: ₹ {summary.discount}</Text>
+      <Text>GST: ₹ {summary.gst}</Text>
+      <Text>Delivery: ₹ {summary.delivery}</Text>
+      <Text style={styles.total}>
+        Total Paid: ₹ {summary.total_payable}
+      </Text>
 
       <View style={styles.buttons}>
         <Button title="Generate PDF" onPress={createPDF} />
         <Button title="Share Invoice" onPress={sharePDF} />
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 export default InvoiceScreen;
 
+/* ---------- STYLES ---------- */
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   heading: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
-  label: { fontSize: 16 },
   section: { marginTop: 20, fontSize: 18, fontWeight: '600' },
-  total: { marginTop: 10, fontWeight: 'bold', fontSize: 18, color: '#1e90ff' },
-  buttons: { marginTop: 30, gap: 10 },
+  total: {
+    marginTop: 10,
+    fontWeight: 'bold',
+    fontSize: 18,
+    color: '#FF6A00',
+  },
+  buttons: { marginTop: 30, gap: 12 },
 });

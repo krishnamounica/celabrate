@@ -102,7 +102,7 @@ function colorFromString(s) {
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
-export default function RelationshipChipsSliding() {
+export default function OccasionsChipsSliding() {
   const navigation = useNavigation();
   const { width: windowWidth } = useWindowDimensions();
 
@@ -126,7 +126,7 @@ export default function RelationshipChipsSliding() {
       const res = await axios.get(`${BASE_URL}/get-categories.php`);
       const raw = res?.data ?? [];
       const filtered = (Array.isArray(raw) ? raw : [])
-        .filter((item) => item.block === 'relation')
+        .filter((item) => item.block === 'occasions')
         .map((item) => ({
           ...item,
           id: String(item.id ?? item._id ?? item.name),
@@ -270,7 +270,7 @@ export default function RelationshipChipsSliding() {
 
   return (
     <Container>
-      <Title>Shop by Relationship</Title>
+      <Title>Shop by occasions</Title>
 
       {loading ? (
         <Centered>

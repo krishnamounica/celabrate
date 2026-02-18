@@ -1,148 +1,142 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  FlatList,
-  Dimensions,
-} from 'react-native';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faSearch, faTimes, faBell } from '@fortawesome/free-solid-svg-icons';
-import { useSelector } from 'react-redux';
+// src/screens/Header.js
+import React, { useEffect, useState } from 'react';
+import styled from 'styled-components/native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { theme } from '../../../theme';
 
-const screenWidth = Dimensions.get('window').width;
+const Wrapper = styled.View`
+  background-color: #fff;
+  padding-vertical: 14px;
+  padding-horizontal: 16px;
 
-const Header = () => {
-  const [searchText, setSearchText] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
+  border-radius: ${theme.radius.card}px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+
+  /* full width alignment */
+  width: 100%;
+
+  border-width: 1px;
+  border-color: #f1f1f1;
+`;
+
+
+const Row = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const BrandBox = styled.View`
+  align-items: center;
+`;
+
+const BrandTitle = styled.Text`
+  font-size: 20px;
+  font-weight: 800;
+  color: ${theme.colors.brand};
+  letter-spacing: 0.6px;
+`;
+
+const BrandSubtitle = styled.Text`
+  font-size: 11px;
+  color: #8a8a8a;
+  margin-top: -2px;
+`;
+const IconRing = styled.View`
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
+  border-width: 1.5px;
+  border-color: ${theme.colors.brand};
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+`;
+
+const IconButton = styled.TouchableOpacity`
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  align-items: center;
+  justify-content: center;
+  background-color: #fafafa;
+`;
+
+const AvatarCircle = styled.View`
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
+  overflow: hidden;
+  border-width: 1.5px;
+  border-color: ${theme.colors.brand};
+  align-items: center;
+  justify-content: center;
+`;
+const RingBase = styled.View`
+  width: 34px;
+  height: 34px;
+  border-radius: 17px;
+  border-width: 1.5px;
+  border-color: ${theme.colors.brand};
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+`;
+
+const AvatarRing = styled(RingBase)`
+  overflow: hidden;
+`;
+
+const AvatarImage = styled.Image`
+  width: 100%;
+  height: 100%;
+`;
+
+export default function Header() {
   const navigation = useNavigation();
-
-  const { items: products } = useSelector((state) => state.products);
-
-  const categories = [...new Set(products.map(product => product.category?.name || product.category))];
+  const [userPhoto, setUserPhoto] = useState(null);
 
   useEffect(() => {
-    if (searchText.length > 0) {
-      const filtered = products.filter(product =>
-        product.name.toLowerCase().includes(searchText.toLowerCase())
-      );
-      setSearchResults(filtered.slice(0, 5));
-    } else {
-      setSearchResults([]);
-    }
-  }, [searchText, products]);
-
-  const handleSelectProduct = (item) => {
-    setSearchText('');
-    setSearchResults([]);
-    navigation.navigate('ProductDetails', { product: item });
-  };
+    (async () => {
+      const stored = await AsyncStorage.getItem('userData');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.photo) setUserPhoto(parsed.photo);
+      }
+    })();
+  }, []);
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.topBar}>
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search gifts..."
-            placeholderTextColor="#6e7a8a"
-            value={searchText}
-            onChangeText={setSearchText}
-          />
-          <TouchableOpacity onPress={() => setSearchText('')}>
-            <FontAwesomeIcon
-              icon={searchText.length > 0 ? faTimes : faSearch}
-              size={18}
-              color="#6e7a8a"
-            />
-          </TouchableOpacity>
-        </View>
-      <TouchableOpacity style={styles.notificationIcon} onPress={() => navigation.navigate('Notifications')}>
-  <FontAwesomeIcon icon={faBell} size={22} color="#6e7a8a" />
-</TouchableOpacity>
+    <Wrapper>
+      <Row>
+    <IconButton onPress={() => navigation.navigate('Profile')}>
+  <AvatarRing>
+    {userPhoto ? (
+      <AvatarImage source={{ uri: userPhoto }} />
+    ) : (
+      <Icon name="user" size={14} color={theme.colors.brand} />
+    )}
+  </AvatarRing>
+</IconButton>
 
-      </View>
 
-      {searchResults.length > 0 && (
-        <View style={styles.searchResults}>
-          <FlatList
-            data={searchResults}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.resultItem} onPress={() => handleSelectProduct(item)}>
-                <Text style={styles.resultText}>{item.name}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-      )}
-    </View>
+
+        <BrandBox>
+          <BrandTitle>Wish &amp; Surprise</BrandTitle>
+          <BrandSubtitle>Gifts made special</BrandSubtitle>
+        </BrandBox>
+<IconButton onPress={() => navigation.navigate('Notifications')}>
+  <RingBase style={{ backgroundColor: theme.colors.brand }}>
+    <Icon name="bell-o" size={16} color="#fff" />
+  </RingBase>
+</IconButton>
+
+
+
+      </Row>
+    </Wrapper>
   );
-};
-
-export default Header;
-
-const styles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: '#ffe4b5',
-    padding: 15,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-    elevation: 5,
-    zIndex: 10,
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  searchContainer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#fff',
-  borderRadius: 20,
-  paddingHorizontal: 16,
-  paddingVertical: 10, // increased height
-  flex: 1,
-  marginRight: 10,
-  elevation: 3,
-},
-
-searchInput: {
-  flex: 1,
-  fontSize: 18, // increased font size
-  color: '#333',
-  paddingVertical: 6, // more vertical space
-},
-
-  notificationIcon: {
-    padding: 10,
-  },
-  searchResults: {
-    position: 'absolute',
-    top: 65,
-    left: 15,
-    right: 15,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
-    elevation: 10,
-    zIndex: 999,
-  },
-  resultItem: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  resultText: {
-    fontSize: 15,
-    color: '#333',
-  },
-});
+}

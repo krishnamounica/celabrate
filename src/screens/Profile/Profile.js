@@ -15,49 +15,55 @@ import ImagePicker from 'react-native-image-crop-picker';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import withSplashScreen from '../../navigation/withSplashScreen';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+
 
 const Profile = ({navigation}) => {
   const Data = [
-    {
-      id: 1,
-      iconeLeft: imagePath.history,
-      label: 'Order History',
-      next: imagePath.next,
-    },
-    {
-      id: 2,
-      iconeLeft: imagePath.location,
-      label: 'Shipping Address',
-      next: imagePath.next,
-    },
-    {id: 6, iconeLeft: imagePath.out, label: 'Log out', next: imagePath.next},
-  ];
+  { id: 1, icon: 'clipboard-list', label: 'Order History' },
+  { id: 2, icon: 'map-marker-alt', label: 'Shipping Address' },
+  { id: 3, icon: 'paper-plane', label: 'Submitted wishes' },
+  { id: 4, icon: 'calendar-check', label: 'Saved Dates' },
+  { id: 5, icon: 'wallet', label: 'Wallet' },
+  { id: 6, icon: 'sign-out-alt', label: 'Log out' },
+];
+
 
   const [profileImage, setProfileImage] = useState();
-  const [userData, setUserData] = useState({ name: '', phone: '', email: '' });
+  const [userData, setUserData] = useState({
+  userId: '',
+  name: '',
+  phone: '',
+  email: '',
+});
+
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const storedUserData = await AsyncStorage.getItem('userData');
-        if (storedUserData) {
-          const parsedData = JSON.parse(storedUserData);
-          setUserData({
-            name: parsedData.userName || parsedData.name || '',
-            phone: parsedData.phone || '',
-            email: parsedData.email || parsedData.user || '',
-          });
+  const fetchUserData = async () => {
+    try {
+      const storedUserData = await AsyncStorage.getItem('userData');
+      if (storedUserData) {
+        const parsedData = JSON.parse(storedUserData);
 
-          if (parsedData.photo) {
-            setProfileImage({ uri: parsedData.photo });
-          }
+        setUserData({
+          userId: parsedData.id || parsedData.userId || '',
+          name: parsedData.userName || parsedData.name || '',
+          phone: parsedData.phone || '',
+          email: parsedData.email || parsedData.user || '',
+        });
+
+        if (parsedData.photo) {
+          setProfileImage({ uri: parsedData.photo });
         }
-      } catch (error) {
-        console.log('Error fetching user data:', error);
       }
-    };
-    fetchUserData();
-  }, []);
+    } catch (error) {
+      console.log('Error fetching user data:', error);
+    }
+  };
+
+  fetchUserData();
+}, []);
+
 
   const ImageImportFromGallery = () => {
     ImagePicker.openPicker({
@@ -103,7 +109,7 @@ const Profile = ({navigation}) => {
           </View>
 
           <Text style={styles.userNameText}>{userData.name}</Text>
-          <Text style={styles.userInfoText}>{userData.phone}</Text>
+                    <Text style={styles.userInfoText}>{userData.phone}</Text>
           <Text style={styles.userInfoText}>{userData.email}</Text>
         </View>
 
@@ -120,9 +126,24 @@ const Profile = ({navigation}) => {
                   index: 0,
                   routes: [{ name: 'Login' }],
                 });
-              } else if (item.label === 'Order History') {
+              } else if (item.label === 'Submitted wishes') {
+  navigation.navigate('SubmittedWishes', {
+    userId: userData.userId,
+  });
+}
+else if (item.label === 'Saved Dates') {
+                navigation.navigate('SavedSpecialDays');
+
+              }
+              else if (item.label === 'Order History') {
                 navigation.navigate('OrderHistory');
-              } else if (item.label === 'Shipping Address') {
+                
+              } 
+              else if (item.label === 'Wallet') {
+                navigation.navigate('Wallet');
+
+              } 
+               else if (item.label === 'Shipping Address') {
                 navigation.navigate('ShippingAddress');
               } else {
                 Alert.alert(item.label);
@@ -132,7 +153,13 @@ const Profile = ({navigation}) => {
             return (
               <TouchableOpacity onPress={handleItemPress} style={styles.listItem}>
                 <View style={styles.iconWrapper}>
-                  <Image style={styles.iconImage} source={item.iconeLeft} />
+               <FontAwesome5
+  name={item.icon}
+  size={16}
+  color="#fff"
+/>
+
+
                 </View>
                 <Text style={styles.itemLabel}>{item.label}</Text>
                 <Image style={styles.arrowIcon} source={item.next} />
@@ -228,14 +255,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     elevation: 2,
   },
-  iconWrapper: {
-    width: moderateScale(32),
-    height: moderateScale(32),
-    borderRadius: 16,
-    backgroundColor: colors.backgorundColor,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+iconWrapper: {
+  width: moderateScale(36),
+  height: moderateScale(36),
+  borderRadius: 18,
+  backgroundColor: colors.primary || '#FF6A00', // app theme color
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderWidth: 1,
+  borderColor: '#000',
+},
+
   iconImage: {
     height: moderateScale(16),
     width: moderateScale(16),

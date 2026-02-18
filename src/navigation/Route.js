@@ -5,38 +5,42 @@ import { Linking } from 'react-native';
 export const navigationRef = React.createRef();
 
 /**
- * Helper: parse url and navigate using navigationRef
+ * Robust URL parser for React Native
  */
-export // robust URL parser (do NOT rely on `new URL()` in React Native)
-function parseUrlString(url) {
-  if (!url || typeof url !== 'string') return { path: '', query: {} };
+export function parseUrlString(url) {
+  if (!url || typeof url !== 'string') return { path: '', segments: [], query: {} };
 
-  // Remove leading scheme and host, leaving the path+query.
-  // Examples transformed:
-  //  - https://domain.com/giftdetails/62?foo=bar  -> /giftdetails/62?foo=bar
-  //  - myapp://giftdetails/62                     -> /giftdetails/62
   let pathAndQuery = url;
 
-  // Remove scheme and host: match "<scheme>://<host><path...>"
-  const m = url.match(/^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\/[^/]+(\/.*)$/);
-  if (m && m[1]) pathAndQuery = m[1];
+  // 1) Strip "<scheme>://" only, KEEP host and path.
+  // Examples:
+  //  - wishandsurprise://giftdetails/62       -> "giftdetails/62"
+  //  - https://wishandsurprise.com/giftdetails/62?foo=bar
+  //        -> "wishandsurprise.com/giftdetails/62?foo=bar"
+  const schemeMatch = url.match(/^([a-zA-Z][a-zA-Z0-9+\-.]*):\/\//);
+  if (schemeMatch) {
+    pathAndQuery = url.slice(schemeMatch[0].length);
+  }
 
-  // If nothing matched, maybe url is already path-like ("/giftdetails/62" or "giftdetails/62")
+  // Ensure it starts with "/" for consistency
   if (!pathAndQuery.startsWith('/')) {
     pathAndQuery = '/' + pathAndQuery;
   }
 
-  // Split path from query
+  // 2) Split path from query
   const [pathPartRaw, queryRaw] = pathAndQuery.split('?');
   const pathPart = pathPartRaw || '/';
 
-  // Normalise segments (lowercase for matching)
-  const segments = pathPart.split('/').filter(Boolean).map(s => s.toLowerCase());
+  // 3) Normalise segments (lowercase for matching)
+  const segments = pathPart
+    .split('/')
+    .filter(Boolean)
+    .map((s) => s.toLowerCase());
 
-  // parse simple querystring into object
+  // 4) Parse simple query string into object
   const query = {};
   if (queryRaw) {
-    queryRaw.split('&').forEach(pair => {
+    queryRaw.split('&').forEach((pair) => {
       const [k, v] = pair.split('=');
       if (!k) return;
       try {
@@ -60,13 +64,20 @@ export function parseAndNavigate(url) {
     // 1) prefer path segments form: /giftdetails/62
     // 2) if not available, fall back to query param id: ?id=62
 
-    // find giftdetails segment
-    const idx = segments.findIndex(p => p.includes('giftdetails'));
-    if (idx >= 0 && segments.length > idx + 1) {
-      const id = segments[idx + 1];
-      console.log('[Route] navigating to GiftDetails with id (from path)', id);
-      navigationRef.current.navigate('GiftDetails', { id });
-      return;
+    // Example segments:
+    //  - wishandsurprise://giftdetails/62
+    //       -> ['giftdetails', '62']
+    //  - https://wishandsurprise.com/giftdetails/62
+    //       -> ['wishandsurprise.com', 'giftdetails', '62']
+
+    const idx = segments.findIndex((p) => p.includes('giftdetails'));
+    if (idx >= 0) {
+      const id = segments[idx + 1]; // next segment after "giftdetails"
+      if (id) {
+        console.log('[Route] navigating to GiftDetails with id (from path)', id);
+        navigationRef.current.navigate('GiftDetails', { id });
+        return;
+      }
     }
 
     // fallback: if path contains giftdetails but no next segment, check query param 'id'
@@ -76,7 +87,6 @@ export function parseAndNavigate(url) {
       return;
     }
 
-    // No mapping matched — optionally log for debugging
     console.log('[Route] parseAndNavigate: no route matched for url', url);
   } catch (e) {
     console.warn('[Route] parseAndNavigate error', e);
@@ -84,8 +94,8 @@ export function parseAndNavigate(url) {
 }
 
 /**
- * Small component that only attaches Linking listeners and handles initial URL.
- * DOES NOT render a NavigationContainer (to avoid nested containers).
+ * Component that attaches Linking listeners and handles initial URL.
+ * Render this ONCE inside your app (e.g. next to NavigationContainer).
  */
 export const DeepLinkHandler = () => {
   useEffect(() => {
@@ -94,6 +104,7 @@ export const DeepLinkHandler = () => {
         const initialUrl = await Linking.getInitialURL();
         if (initialUrl) {
           console.log('[Route] initial URL ->', initialUrl);
+          // small delay so navigationRef is ready
           setTimeout(() => parseAndNavigate(initialUrl), 400);
         }
       } catch (e) {
@@ -106,7 +117,10 @@ export const DeepLinkHandler = () => {
       parseAndNavigate(url);
     };
 
-    const sub = Linking.addEventListener ? Linking.addEventListener('url', onUrl) : Linking.addListener('url', onUrl);
+    const sub = Linking.addEventListener
+      ? Linking.addEventListener('url', onUrl)
+      : Linking.addListener('url', onUrl);
+
     return () => {
       try {
         if (sub && sub.remove) sub.remove();

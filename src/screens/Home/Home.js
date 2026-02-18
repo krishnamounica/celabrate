@@ -1,86 +1,93 @@
-import { SafeAreaView, StyleSheet, ScrollView, View, Text } from 'react-native';
-import React from 'react';
-import ProductListScreen from '../ProductListScreen';
-import BestOffers from '../BestOffers';
-import RelationshipScreen from '../RelationshipScreen';
-import Categories from '../Categories';
-import Banner from './Banner';
+// src/screens/Home.js
+import React, { useRef } from 'react';
+import { FlatList, View } from 'react-native';
+import styled from 'styled-components/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { theme } from '../../../theme';
 import Header from './Header';
-import CelebrationsCalendar from '../CelebrationsCalendar';
-import Gsignin from '../Gsignin';
-import TShirtCustomizer from '../../../TShirtCustomizer';
-import withSplashScreen from '../../navigation/withSplashScreen';
+import Banner from './Banner';
+import RelationshipScreen from '../RelationshipScreen';
 import GiftPacksGrid from '../../navigation/GiftPacksGrid';
+import LinearGradient from 'react-native-linear-gradient';
+import ProductListScreen from '../ProductListScreen';
+import OccasionsChipsSliding from '../occasionsChipsSliding';
+
+const Container = styled.View`
+  flex: 1;
+  background-color: ${theme.colors.bg};
+`;
+
+const GradientBackground = styled(LinearGradient).attrs({
+//  colors: ['#FFF8E7', '#FFE6A8', '#FFB947']
+// colors: ['#FFF6EF', '#FFE1CC', '#FFC299']
+// colors: ['#FFF5EB', '#FFD7B5', '#FF6600']
+// colors: ['#FFF5EB', '#FFD7B5', '#FF9340']
+colors: ['#FFF5EB', '#FFD7B5', '#FF6600']
 
 
-const Home = () => {
-    return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
 
-        {/* Best Offers Section - Now has proper top spacing */}
-        <View style={styles.firstSection}>
+,
+
+  start: { x: 0, y: 0 },
+  end: { x: 0, y: 1 },
+})`
+  flex: 1;
+`;
+
+export default function Home({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const flatRef = useRef(null);
+
+  // If you want a small data set to enable FlatList rendering, supply an empty array.
+  // The important part is using ListHeaderComponent to host the content with internal FlatList(s) avoided.
+  const dummy = [];
+
+  const ListHeader = () => (
+    <View style={{ paddingHorizontal: theme.spacing.page, paddingTop: 12 }}>
+      {/* Header */}
+      <View style={{ marginBottom: theme.spacing.section }}>
         <Header />
       </View>
 
-        <View style={styles.firstSection}>
+      {/* Hero */}
+      <View style={{ marginBottom: theme.spacing.section }}>
         <Banner />
       </View>
 
-    <View style={styles.section}>
-        <GiftPacksGrid />
-          {/* <BestOffers /> */}
-                </View>
-        {/* <View style={styles.section}>
-          <TShirtCustomizer />
-        </View> */}
+     
+          <View style={{ marginBottom: theme.spacing.section }}>
+        <RelationshipScreen />
+      </View>
+          <View style={{ marginBottom: theme.spacing.section }}>
+        <OccasionsChipsSliding />
+      </View>
 
-        <View style={styles.section}>
-          <RelationshipScreen />
-          </View>
+       <View style={{ marginBottom: theme.spacing.section }}>
+        <ProductListScreen />
+      </View>
+      <View style={{ marginBottom: theme.spacing.section }}>
+        <GiftPacksGrid previewOnly />
+      </View>
 
-        <View style={styles.section}>
-          <ProductListScreen />
-        </View>
-        <View style={styles.lastsection}>
-          <CelebrationsCalendar />
+      {/* Relationships */}
+      
+       
+
+      {/* spacer */}
+      <View style={{ height: 10 }} />
     </View>
-
-      </ScrollView>
-    </SafeAreaView>
   );
-};
 
-export default withSplashScreen(Home);
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    paddingTop: 5, // Ensures spacing from top edge
-  },
-  scrollContainer: {
-    paddingBottom: 5,
-  },
-  section: {
-    marginBottom: 5,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  firstSection: {
-    flex:1
-    // marginTop: 10, // Pushes Best Offers down to ensure visibility
-  },
-  lastsection: {
-    flex:1,
-    // backgroundColor: 'red',
-    marginBottom:40,
-    justifyContent:"center",
-    fontStyle:'bold'
-  }
-});
+  return (
+    <GradientBackground>
+      <FlatList
+        ref={flatRef}
+        data={dummy}
+        keyExtractor={(_, i) => String(i)}
+        ListHeaderComponent={ListHeader}
+        contentContainerStyle={{ paddingBottom: insets.bottom + theme.sizes.navOverlap }}
+        renderItem={null}
+      />
+    </GradientBackground>
+  );
+}
